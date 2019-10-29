@@ -66,18 +66,21 @@ function main()
    plot(points)
 end
 
+function coroutine.loop(f)
+   while true do
+      co = coroutine.wrap(f)
+      for ret in co do coroutine.yield(ret) end
+   end
+end
+
 function love.load()
-   get_content = coroutine.wrap(main)
+   get_content = coroutine.wrap(function() coroutine.loop(main) end)
    content = get_content() 
 end
 
 function love.mousepressed(x, y, button)
    if button == 1 then
-      content = get_content() 
-      if not content then 
-         get_content = coroutine.wrap(main) 
-         content = get_content() 
-      end
+      content = get_content()
    end
 end
 
