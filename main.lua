@@ -15,32 +15,37 @@ function rand_double(min, max)
    return love.math.random() * (max - min) + min
 end
 
-function love.load()
+function main()
+   local plot = coroutine.yield
+   local points
 
    -- 1.a)
-   points_a = { color = c.blue, title = "Punkty z przedziału  <-1000,1000>" }
+   points = { color = c.blue, title = "Punkty z przedziału  <-1000,1000>" }
    for i = 1,1e5 do
       local p = v2(rand_double(-1000, 1000), rand_double(-1000, 1000))
-      table.insert(points_a, p)
+      table.insert(points, p)
    end
+   plot(points)
 
    -- 1.b)
-   points_b = { color = c.red, title = "Punkty z przedziału  <-1e14, 1e14>" }
+   points = { color = c.red, title = "Punkty z przedziału  <-1e14, 1e14>" }
    for i = 1,1e5 do
       local p = v2(rand_double(-1e14, 1e14), rand_double(-1e14, 1e14))
-      table.insert(points_b, p)
+      table.insert(points, p)
    end
+   plot(points)
 
    -- 1.c)
-   points_c = { color = c.blue, title = "Punkty na okręgu o promieniu 100" }
+   points = { color = c.blue, title = "Punkty na okręgu o promieniu 100" }
    for i = 1,1e5 do
       local r = rand_double(0, 2 * math.pi)
       local p = v2(100 * math.cos(r), 100 * math.sin(r))
-      table.insert(points_c, p)
+      table.insert(points, p)
    end
+   plot(points)
 
    -- 1.d)
-   points_d = { color = c.red, title = "Punkty na prostej a[-1,0],  b[1,0.1]" }
+   points = { color = c.red, title = "Punkty na prostej a[-1,0],  b[1,0.1]" }
 
    local a = v2(-1.0, 0.0)
    local b = v2(1.0, 0.1)
@@ -56,19 +61,26 @@ function love.load()
    for i = 1,1e3 do
       local t = rand_double(t_min, t_max)
       local p = (1-t)*a + t*b 
-      table.insert(points_d, p)
+      table.insert(points, p)
    end
+   plot(points)
+end
 
-   graph_idx = 0
-   graphs = { points_a, points_b, points_c, points_d }
+function love.load()
+   get_content = coroutine.wrap(main)
+   content = get_content() 
 end
 
 function love.mousepressed(x, y, button)
    if button == 1 then
-      graph_idx = (graph_idx + 1) % #graphs
+      content = get_content() 
+      if not content then 
+         get_content = coroutine.wrap(main) 
+         content = get_content() 
+      end
    end
 end
 
 function love.draw()
-   graph.graph(graphs[graph_idx + 1])
+   graph.graph(content)
 end
