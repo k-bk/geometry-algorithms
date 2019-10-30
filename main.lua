@@ -4,48 +4,77 @@ local v2 = require "love2d-graphs.v2"
 graph.FONT.body = love.graphics.newFont("Cantarell-Regular.otf", 12)
 graph.FONT.title = love.graphics.newFont("Cantarell-Regular.otf", 18)
 
-c = {
-   blue = { .3,.3,1 },
-   black = { 0,0,0 },
-   red = { 1,0,0 },
-   white = { 1,1,1 }
-}
-
 function rand_double(min, max)
    return love.math.random() * (max - min) + min
 end
 
+function my_det(a,b,c, algo)
+   m = { det = function () end }
+   if algo == 0 then
+      return 
+         a[1]*b[2] + a[2]*c[1] + b[1]*c[2]
+       - a[1]*c[2] - a[2]*b[1] - b[2]*c[1]
+   elseif algo == 1 then
+      return 
+         ((a[1]-c[1]) * (b[2]-c[2]))
+       - ((a[2]-c[2]) * (b[1]-c[1]))
+   elseif algo == 2 then
+      return m.det({ 
+         { a[1], a[2], 1 },
+         { b[1], b[2], 1 },
+         { c[1], c[2], 1 }})
+   elseif algo == 3 then
+      return m.det({
+         { a[1]-c[1], a[2]-c[2] },
+         { b[1]-c[1], b[2]-c[2] }})
+   end
+end
+
+function orient(a,b,c, algo)
+   d = my_det(a,b,c, algo)
+   eps = 1e-10
+   if d > eps then 
+      return 1
+   elseif d < -eps then 
+      return -1
+   else
+      return 0 
+   end
+end
+
+
+-- MAIN PROGRAM --
+
 function main()
    local plot = coroutine.yield
-   local points
 
    -- 1.a)
-   points = { color = c.blue, title = "Punkty z przedziału  <-1000,1000>" }
+   local points_a = { color = graph.c.blue }
    for i = 1,1e5 do
       local p = v2(rand_double(-1000, 1000), rand_double(-1000, 1000))
-      table.insert(points, p)
+      table.insert(points_a, p)
    end
-   plot(points)
+   plot { points_a, title = "Punkty z przedziału  <-1000,1000>" }
 
    -- 1.b)
-   points = { color = c.red, title = "Punkty z przedziału  <-1e14, 1e14>" }
+   local points_b = { color = graph.c.red }
    for i = 1,1e5 do
       local p = v2(rand_double(-1e14, 1e14), rand_double(-1e14, 1e14))
-      table.insert(points, p)
+      table.insert(points_b, p)
    end
-   plot(points)
+   plot { points_b, title = "Punkty z przedziału  <-1e14, 1e14>" }
 
    -- 1.c)
-   points = { color = c.blue, title = "Punkty na okręgu o promieniu 100" }
+   local points_c = { color = graph.c.blue }
    for i = 1,1e5 do
       local r = rand_double(0, 2 * math.pi)
       local p = v2(100 * math.cos(r), 100 * math.sin(r))
-      table.insert(points, p)
+      table.insert(points_c, p)
    end
-   plot(points)
+   plot { points_c, title = "Punkty na okręgu o promieniu 100" }
 
    -- 1.d)
-   points = { color = c.red, title = "Punkty na prostej a[-1,0],  b[1,0.1]" }
+   local points_d = { color = graph.c.red }
 
    local a = v2(-1.0, 0.0)
    local b = v2(1.0, 0.1)
@@ -61,9 +90,38 @@ function main()
    for i = 1,1e3 do
       local t = rand_double(t_min, t_max)
       local p = (1-t)*a + t*b 
-      table.insert(points, p)
+      table.insert(points_d, p)
    end
-   plot(points)
+   plot { points_d, title = "Punkty na prostej a[-1,0],  b[1,0.1]" }
+
+   -- 3.a)
+   for i,pp in ipairs{ points_a, points_b, points_c, points_d } do
+      pp_left =   filter(pp, function(p) return orient(a,b,p, 1) == 1 end)
+      pp_right =  filter(pp, function(p) return orient(a,b,p, 1) ==-1 end)
+      pp_on =     filter(pp, function(p) return orient(a,b,p, 1) == 0 end)
+      pp_left.color = graph.c.blue
+      pp_right.color = graph.c.red
+      pp_on.color = graph.c.green
+      plot { pp_right, pp_left, pp_on, title = "Orientacja "..i }
+   end
+end
+
+function map(t, f)
+   out = {}
+   for _,v in ipairs(t) do
+      table.insert(out, f(v))
+   end
+   return out
+end
+
+function filter(t, f)
+   out = {}
+   for _,v in ipairs(t) do
+      if f(v) then
+         table.insert(out, v)
+      end
+   end
+   return out
 end
 
 function coroutine.loop(f)
