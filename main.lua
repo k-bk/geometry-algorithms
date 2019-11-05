@@ -10,20 +10,20 @@ end
 
 function my_det(a,b,c, algo)
    m = { det = function () end }
-   if algo == 0 then
+   if algo == 1 or algo == 3 then
       return 
          a[1]*b[2] + a[2]*c[1] + b[1]*c[2]
        - a[1]*c[2] - a[2]*b[1] - b[2]*c[1]
-   elseif algo == 1 then
+   elseif algo == 2 or algo == 4 then
       return 
          ((a[1]-c[1]) * (b[2]-c[2]))
        - ((a[2]-c[2]) * (b[1]-c[1]))
-   elseif algo == 2 then
+   elseif algo == 3 then
       return m.det({ 
          { a[1], a[2], 1 },
          { b[1], b[2], 1 },
          { c[1], c[2], 1 }})
-   elseif algo == 3 then
+   elseif algo == 4 then
       return m.det({
          { a[1]-c[1], a[2]-c[2] },
          { b[1]-c[1], b[2]-c[2] }})
@@ -104,6 +104,24 @@ function main()
       pp_on.color = graph.c.green
       plot { pp_right, pp_left, pp_on, title = "Orientacja "..i }
    end
+
+   print("Summary:")
+   print("  algo", "left", "right", "on")
+   for i,pp in ipairs{ points_a, points_b, points_c, points_d } do
+      print(" graph "..i)
+      for alg = 1,4 do
+         pp_left =   filter(pp, function(p) return orient(a,b,p, alg) == 1 end)
+         pp_right =  filter(pp, function(p) return orient(a,b,p, alg) ==-1 end)
+         pp_on =     filter(pp, function(p) return orient(a,b,p, alg) == 0 end)
+         print("  "..alg, #pp_left, #pp_right, #pp_on)
+      end
+   end
+
+   print("\nAlgorithms:")
+   print(" 1. determinant 3x3, my implementation")
+   print(" 2. determinant 2x2, my implementation")
+   print(" 3. determinant 3x3, library function")
+   print(" 4. determinant 2x2, library function")
 end
 
 function map(t, f)
