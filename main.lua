@@ -46,7 +46,8 @@ end
 -- MAIN PROGRAM --
 
 function main()
-   local plot = coroutine.yield
+   local plots = {}
+   local plot = function (p) table.insert(plots, p) end
 
    -- 1.a)
    local points_a = { color = graph.c.blue }
@@ -94,14 +95,18 @@ function main()
    end
    plot { points_d, title = "Punkty na prostej a[-1,0],  b[1,0.1]" }
 
+   local pp_left, pp_right, pp_on
    -- 3.a)
    for i,pp in ipairs{ points_a, points_b, points_c, points_d } do
-      pp_left =   filter(pp, function(p) return orient(a,b,p, 1) == 1 end)
-      pp_right =  filter(pp, function(p) return orient(a,b,p, 1) ==-1 end)
-      pp_on =     filter(pp, function(p) return orient(a,b,p, 1) == 0 end)
-      pp_left.color = graph.c.blue
-      pp_right.color = graph.c.red
-      pp_on.color = graph.c.green
+      pp_left = { color = graph.c.blue }
+      pp_right = { color = graph.c.red }
+      pp_on = { color = graph.c.green }
+      for _, p in ipairs(pp) do
+         local o = orient(a,b,p, 1)
+         if o == 1 then table.insert(pp_left, p) end
+         if o ==-1 then table.insert(pp_right, p) end
+         if o == 0 then table.insert(pp_on, p) end
+      end
       plot { pp_right, pp_left, pp_on, title = "Orientacja "..i }
    end
 
@@ -110,10 +115,14 @@ function main()
    for i,pp in ipairs{ points_a, points_b, points_c, points_d } do
       print(" graph "..i)
       for alg = 1,4 do
-         pp_left =   filter(pp, function(p) return orient(a,b,p, alg) == 1 end)
-         pp_right =  filter(pp, function(p) return orient(a,b,p, alg) ==-1 end)
-         pp_on =     filter(pp, function(p) return orient(a,b,p, alg) == 0 end)
-         print("  "..alg, #pp_left, #pp_right, #pp_on)
+         local left, right, on = 0,0,0
+         for _, p in ipairs(pp) do
+            local o = orient(a,b,p, alg)
+            if o == 1 then left = left + 1 end
+            if o ==-1 then right = right + 1 end
+            if o == 0 then on = on + 1 end
+         end
+         print("  "..alg, left, right, on)
       end
    end
 
@@ -122,35 +131,16 @@ function main()
    print(" 2. determinant 2x2, my implementation")
    print(" 3. determinant 3x3, library function")
    print(" 4. determinant 2x2, library function")
-end
 
-function map(t, f)
-   out = {}
-   for _,v in ipairs(t) do
-      table.insert(out, f(v))
-   end
-   return out
-end
-
-function filter(t, f)
-   out = {}
-   for _,v in ipairs(t) do
-      if f(v) then
-         table.insert(out, v)
-      end
-   end
-   return out
-end
-
-function coroutine.loop(f)
    while true do
-      co = coroutine.wrap(f)
-      for ret in co do coroutine.yield(ret) end
+      for _,p in ipairs(plots) do
+         coroutine.yield(p)
+      end
    end
 end
 
 function love.load()
-   get_content = coroutine.wrap(function() coroutine.loop(main) end)
+   get_content = coroutine.wrap(main)
    content = get_content() 
 end
 
