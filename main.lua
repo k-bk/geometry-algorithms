@@ -1,5 +1,6 @@
 graph = require "love2d-graphs.graph"
 v2 = require "love2d-graphs.v2"
+UI = require "UI"
 
 require "lab1"
 require "lab2"
@@ -12,9 +13,8 @@ function rand_double(min, max)
 end
 
 function det(a,b,c)
-    return
-      a[1]*b[2] + a[2]*c[1] + b[1]*c[2]
-    - a[1]*c[2] - a[2]*b[1] - b[2]*c[1]
+    return (a[1]-c[1]) * (b[2]-c[2])
+         - (a[2]-c[2]) * (b[1]-c[1])
 end
 
 function orient(a,b,c)
@@ -34,8 +34,8 @@ function love.load()
    autorun = false
    stoper = 0
    step = 0.05
-   get_content = coroutine.wrap(lab2)
-   content = get_content() 
+   love.graphics.setBackgroundColor{ 1,1,1 }
+   love.draw = draw_menu
 end
 
 function love.update(dt)
@@ -48,12 +48,58 @@ function love.update(dt)
    end
 end
 
-function love.mousepressed(x, y, button)
+function love.mousepressed (x, y, button)
+   if get_content then
+      if button == 1 then
+         content = get_content()
+      end
+   end
    if button == 1 then
-      content = get_content()
+      UI.mousepressed { x = x, y = y }
    end
 end
 
-function love.draw()
+function love.mousereleased (x, y, button)
+    if button == 1 then
+        UI.mousereleased { x = x, y = y }
+    end
+end
+
+function love.mousemoved (x, y)
+    UI.mousemoved { x = x, y = y }
+end
+
+function love.keypressed (key)
+   if key == "escape" then
+      if love.draw == draw_menu then
+         love.event.quit()
+      else
+         love.draw = draw_menu
+      end
+   end
+end
+
+function draw_menu()
+   UI.draw { x = 10, y = 10,
+      UI.horizontal {
+         UI.button( "Lab 1", function () 
+            get_content = coroutine.wrap(lab1) 
+            content = get_content()
+            love.draw = draw_lab
+         end),
+         UI.label { "Losowe punkty" },
+      },
+      UI.horizontal {
+         UI.button( "Lab 2", function () 
+            get_content = coroutine.wrap(lab2) 
+            content = get_content()
+            love.draw = draw_lab
+         end),
+         UI.label { "Algorytmy Grahama i Jarvisa" },
+      },
+   }
+end
+
+function draw_lab()
    graph.graph(content)
 end
