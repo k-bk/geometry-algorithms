@@ -1,5 +1,6 @@
 function lab2()
-   local plot = coroutine.yield
+   local plot = function (x) autorun = false; coroutine.yield(x) end
+   local autoplot = function (x) autorun = true; coroutine.yield(x) end
 
    local points = { color = graph.c.blue }
    for i = 1,100 do
@@ -18,13 +19,14 @@ function lab2()
 
    table.sort(points, function (a,b) return orient(pivot, a, b) > 0 end)
 
-   points.style = "line"
-   plot { points, title = "Posortowane z przedziału  <-1000,1000>" }
-   points.style = "point"
+   local strokes = { points, title = "Punkty posortowane względem "..pivot } 
+   for i = 2, #points do
+      table.insert(strokes, { pivot, points[i], style = "line", color = graph.c.green })
+      autoplot( strokes )
+   end
 
-   autorun = true
    local p = points
-   local s = { p[1], p[2], p[3], style = "line" }
+   local s = { p[1], p[2], p[3], style = "line", color = graph.c.green }
    local i = #s + 1 
    local m = #p
    while i <= m do
@@ -34,21 +36,23 @@ function lab2()
       else
          s[#s] = nil
       end
-      plot { s, p, title = "Algorytm Grahama" }
+      autoplot { s, p, title = "Algorytm Grahama" }
    end
 
    table.insert(s, s[1])
 
-   autorun = false
-   plot { s, p, title = "Algorytm Grahama, koniec" }
-   autorun = true
+   local hull = { unpack(s) }
+   hull.color = graph.c.red
+   hull.style = "point"
+   plot { s, p, hull, title = "Algorytm Grahama, koniec" }
 
    ----------------------
    -- Algorytm Jarvisa
    ----------------------
 
    local pivot = points[1]
-   local s = { v2(pivot[1] - 50,pivot[2]), pivot, style = "line" }
+   local s = { v2(pivot[1] - 50,pivot[2]), pivot, 
+      style = "line", color = graph.c.green }
 
    repeat
       local min_angle = math.huge
@@ -66,12 +70,15 @@ function lab2()
       end
 
       table.insert(s, min_p)
-      plot { s, points, title = "Algorytm Jarvisa" }
+      autoplot { s, points, title = "Algorytm Jarvisa" }
    until min_p == pivot 
 
    table.remove(s, 1)
-   autorun = false
+
+   local hull = { unpack(s) }
+   hull.color = graph.c.red
+   hull.style = "point"
    while true do
-      plot { s, p, title = "Algorytm Jarvisa, koniec" }
+      plot { s, points, hull, title = "Algorytm Jarvisa, koniec" }
    end
 end
