@@ -81,7 +81,7 @@ end
 
 function draw_menu()
    UI.draw { x = 10, y = 10,
-      UI.horizontal {
+      {
          UI.button( "Lab 1", function () 
             get_content = coroutine.wrap(lab1) 
             content = get_content()
@@ -89,7 +89,7 @@ function draw_menu()
          end),
          UI.label { "Losowe punkty" },
       },
-      UI.horizontal {
+      {
          UI.button( "Lab 2", function () 
             get_content = coroutine.wrap(lab2) 
             content = get_content()
