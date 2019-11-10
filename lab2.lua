@@ -28,18 +28,15 @@ function lab2()
    plot { points, title = "Punkty z przedziału  <-1000,1000>" }
 
    points = rectangle
-   table.sort(points, function (a,b) return a[2] < b[2] end)
-   local min = points[1]
-   for _,p in ipairs(points) do
-      if p[2] ~= points[1][2] then
-         break
-      end
-      if p[1] < min[1] then
-         min = p
+   local pivot = points[1]
+   local pivot_i = 1
+   for i,p in ipairs(points) do
+      if p[2] < pivot[2] or (p[2] == pivot[2] and p[1] < pivot[1]) then
+         pivot = p
+         pivot_i = i
       end
    end
-
-   local pivot = min
+   table.remove(points, pivot_i)
 
    ----------------------
    -- Algorytm Grahama 
@@ -50,11 +47,11 @@ function lab2()
    local strokes = { points, title = "Punkty posortowane względem "..pivot } 
    for i = 2, #points do
       table.insert(strokes, { pivot, points[i], style = "line", color = graph.c.green })
-      autoplot( strokes )
+      --autoplot( strokes )
    end
 
    local p = points
-   local s = { p[1], p[2], p[3], style = "line", color = graph.c.green }
+   local s = { pivot, p[1], p[2], style = "line", color = graph.c.green }
    local i = #s + 1 
    local m = #p
    while i <= m do
@@ -68,7 +65,7 @@ function lab2()
       else
          s[#s] = nil
       end
-      autoplot { s, p, title = "Algorytm Grahama" }
+      --plot { s, p, title = "Algorytm Grahama" }
    end
    table.insert(s, s[1])
 
@@ -81,9 +78,8 @@ function lab2()
    -- Algorytm Jarvisa
    ----------------------
 
-   local eps = 1e-5
-   local pivot = points[1]
-   local s = { v2(pivot[1] - 50,pivot[2]), pivot, 
+   local eps = 1e-2
+   local s = { v2(pivot[1] - 10,pivot[2]), pivot, 
       style = "line", color = graph.c.green }
 
    repeat
@@ -91,25 +87,29 @@ function lab2()
       local first, middle = s[#s-1], s[#s]
       local s1 = first - middle
       local s1_len = s1:len()
+      table.insert(points,pivot)
 
       for _,last in ipairs(points) do
-         local s2 = last - middle 
-         local angle = math.asin(s1:dot(s2) / (s1_len * s2:len()))
+         local s2 = middle - last 
+         local angle = math.acos(s1:dot(s2) / (s1_len * s2:len()))
          if angle < min_angle then
             min_angle = angle
             min_p = last 
          end
       end
 
-      if min_angle < eps and min_angle > -eps then
-         table.remove(s, #s)
+      -- if angle is 0 or pi
+      if math.abs(min_angle) < eps
+         or math.abs(min_angle - math.pi) < eps 
+      then
+         s[#s] = min_p
+      else
+         s[#s+1] = min_p
       end
-      table.insert(s, min_p)
-      autoplot { s, points, title = "Algorytm Jarvisa" }
+      plot { points, s, {color=graph.c.red, unpack(s)}, title = "Algorytm Jarvisa" }
    until min_p == pivot 
 
-   table.remove(s, 1)
-
+   s[1] = pivot
    local hull = { unpack(s) }
    hull.color = graph.c.red
    hull.style = "point"
