@@ -1,23 +1,28 @@
-function points_on_line(a, b, points)
-   -- 1.d)
-   local points = points or {}
+function random_on_segment(a, b, buffer)
+   local buffer = buffer or {}
    for i = 1,10 do
       local t = love.math.random() 
       local p = (1-t)*a + t*b 
-      table.insert(points, p)
+      table.insert(buffer, p)
    end
    return points
+end
+
+function random_on_rectangle(a, b, buffer)
+   local buffer = buffer or {}
+   random_on_segment(a, v2(a[1],b[2]), buffer)
+   random_on_segment(v2(a[1],b[2]), b, buffer)
+   random_on_segment(b, v2(b[1],a[2]), buffer)
+   random_on_segment(v2(b[1],a[2]), a, buffer)
+   return buffer
 end
 
 function lab2()
    local plot = function (x) autorun = false; coroutine.yield(x) end
    local autoplot = function (x) autorun = true; coroutine.yield(x) end
 
-   local rectangle = { color = graph.c.blue }
-   points_on_line(v2(0,0), v2(100,0), rectangle)
-   points_on_line(v2(100,0), v2(100,50), rectangle)
-   points_on_line(v2(100,50), v2(0,50), rectangle)
-   points_on_line(v2(0,50), v2(0,0), rectangle)
+   local rectangle = random_on_rectangle(v2(0,0), v2(150,50))
+   rectangle.color = graph.c.blue
    plot { rectangle, title = "Losowe punkty na prostokącie" }
 
    local points = { color = graph.c.blue }
@@ -106,7 +111,7 @@ function lab2()
       else
          s[#s+1] = min_p
       end
-      plot { points, s, {color=graph.c.red, unpack(s)}, title = "Algorytm Jarvisa" }
+      autoplot { points, s, {color=graph.c.red, unpack(s)}, title = "Algorytm Jarvisa" }
    until min_p == pivot 
 
    s[1] = pivot
