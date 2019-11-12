@@ -1,3 +1,5 @@
+local rand = require "rand"
+
 function my_det(a,b,c, algo)
    m = { det = function () end }
    if algo == 1 or algo == 3 then
@@ -21,57 +23,31 @@ function my_det(a,b,c, algo)
 end
 
 function lab1()
-   local plots = {}
-   local plot = function (p) table.insert(plots, p) end
 
-   -- 1.a)
+    -- 1.a)
    local points_a = { color = graph.c.blue }
-   for i = 1,1e5 do
-      local p = v2(rand_double(-1000, 1000), rand_double(-1000, 1000))
-      table.insert(points_a, p)
-   end
-   plot { points_a, title = "Punkty z przedziału  <-1000,1000>" }
+   rand.in_range(v2(-1000,1000), v2(-1000,1000), 1e5, points_a)
+   coroutine.yield { points_a, title = "Punkty z przedziału  <-1000,1000>" }
 
    -- 1.b)
    local points_b = { color = graph.c.red }
-   for i = 1,1e5 do
-      local p = v2(rand_double(-1e14, 1e14), rand_double(-1e14, 1e14))
-      table.insert(points_b, p)
-   end
-   plot { points_b, title = "Punkty z przedziału  <-1e14, 1e14>" }
+   rand.in_range(v2(-1e14,1e14), v2(-1e14,1e14), 1e5, points_b)
+   coroutine.yield { points_b, title = "Punkty z przedziału  <-1e14, 1e14>" }
 
    -- 1.c)
    local points_c = { color = graph.c.blue }
-   for i = 1,1e5 do
-      local r = rand_double(0, 2 * math.pi)
-      local p = v2(100 * math.cos(r), 100 * math.sin(r))
-      table.insert(points_c, p)
-   end
-   plot { points_c, title = "Punkty na okręgu o promieniu 100" }
+   rand.on_circle(v2(100,100), 100, 100, points_c)
+   coroutine.yield { points_c, title = "Punkty na okręgu o promieniu 100" }
 
    -- 1.d)
    local points_d = { color = graph.c.red }
+   local a = v2(-1000, 0)
+   local b = v2(1000, 100)
+   rand.on_segment(a, b, 1e5, points_d)
+   coroutine.yield { points_d, title = "Punkty na prostej a[-1,0],  b[1,0.1]" }
 
-   local a = v2(-1.0, 0.0)
-   local b = v2(1.0, 0.1)
-   local t = v2(0,0)
-   if math.abs(a[1]-b[1]) > math.abs(a[2]-b[2]) then
-       t_min = (a[1] + 1000) / (a[1] - b[1])
-       t_max = (a[1] - 1000) / (a[1] - b[1])
-   else
-       t_min = (a[2] + 1000) / (a[2] - b[2])
-       t_max = (a[2] - 1000) / (a[2] - b[2])
-   end
-
-   for i = 1,1e3 do
-      local t = rand_double(t_min, t_max)
-      local p = (1-t)*a + t*b 
-      table.insert(points_d, p)
-   end
-   plot { points_d, title = "Punkty na prostej a[-1,0],  b[1,0.1]" }
-
-   local pp_left, pp_right, pp_on
    -- 3.a)
+   local pp_left, pp_right, pp_on
    for i,pp in ipairs{ points_a, points_b, points_c, points_d } do
       pp_left = { color = graph.c.blue }
       pp_right = { color = graph.c.red }
@@ -82,7 +58,7 @@ function lab1()
          if o ==-1 then table.insert(pp_right, p) end
          if o == 0 then table.insert(pp_on, p) end
       end
-      plot { pp_right, pp_left, pp_on, title = "Orientacja "..i }
+      coroutine.yield { pp_right, pp_left, pp_on, title = "Orientacja "..i }
    end
 
    print("Summary:")
@@ -106,10 +82,4 @@ function lab1()
    print(" 2. determinant 2x2, my implementation")
    print(" 3. determinant 3x3, library function")
    print(" 4. determinant 2x2, library function")
-
-   while true do
-      for _,p in ipairs(plots) do
-         coroutine.yield(p)
-      end
-   end
 end
