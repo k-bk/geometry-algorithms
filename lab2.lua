@@ -1,35 +1,34 @@
-function random_on_segment(a, b, buffer)
-   local buffer = buffer or {}
-   for i = 1,10 do
-      local t = love.math.random() 
-      local p = (1-t)*a + t*b 
-      table.insert(buffer, p)
-   end
-   return points
-end
-
-function random_on_rectangle(a, b, buffer)
-   local buffer = buffer or {}
-   random_on_segment(a, v2(a[1],b[2]), buffer)
-   random_on_segment(v2(a[1],b[2]), b, buffer)
-   random_on_segment(b, v2(b[1],a[2]), buffer)
-   random_on_segment(v2(b[1],a[2]), a, buffer)
-   return buffer
-end
+local rand = require "rand"
 
 function lab2()
    local plot = function (x) autorun = false; coroutine.yield(x) end
    local autoplot = function (x) autorun = true; coroutine.yield(x) end
 
-   local rectangle = random_on_rectangle(v2(0,0), v2(150,50))
-   rectangle.color = graph.c.blue
+   points = { a = {}, b = {}, c = {} }
+   -- 1. a
+   rand.in_range(v2(-100,100), v2(-100,100), 100, points.a)
+   -- 1. b
+   rand.on_circle(v2(0,0), 10, 100, points.b)
+   -- 1. c
+   rand.on_rectangle(v2(-10,-10), v2(10,10), 100, points.c)
+   -- 1. d
+   points.d = { v2(0,0), v2(10,0), v2(10,10), v2(0,10) }
+   rand.on_segment(v2(0,0), v2(10,0), 25, points.d)
+   rand.on_segment(v2(0,0), v2(0,10), 25, points.d)
+   rand.on_segment(v2(0,0), v2(10,10), 20, points.d)
+   rand.on_segment(v2(10,0), v2(0,10), 20, points.d)
+
+   plot { points.a, title = "100 punktów z przedziału <-100,100>" }
+   plot { points.b, title = "100 punktów na okręgu o środku (0,0) i promienu 10" }
+   plot { points.c, title = "100 punktów na prostokącie (-10,-10), (10,10)" }
+   plot { points.d, title = "Punkty na bokach kwadratu i przekątnych" }
+
+   local rectangle = { graph.c.blue }
+   rand.on_rectangle(v2(0,0), v2(150,50), 30, rectangle)
    plot { rectangle, title = "Losowe punkty na prostokącie" }
 
    local points = { color = graph.c.blue }
-   for i = 1,100 do
-      local p = v2(rand_double(-1000, 1000), rand_double(-1000, 1000))
-      table.insert(points, p)
-   end
+   rand.in_range(v2(-1e3,1e3), v2(-1e3,1e3), 30, points)
    plot { points, title = "Punkty z przedziału  <-1000,1000>" }
 
    points = rectangle
@@ -84,8 +83,7 @@ function lab2()
    ----------------------
 
    local eps = 1e-2
-   local s = { v2(pivot[1] - 10,pivot[2]), pivot, 
-      style = "line", color = graph.c.green }
+   local s = { v2(pivot[1]-10, pivot[2]), pivot, style = "line", color = graph.c.green }
 
    repeat
       local min_angle = math.huge

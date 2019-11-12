@@ -1,16 +1,13 @@
-graph = require "love2d-graphs.graph"
-v2 = require "love2d-graphs.v2"
 UI = require "UI"
+graph = require "love2d-graphs.graph"
+rand = require "rand"
+v2 = require "love2d-graphs.v2"
 
 require "lab1"
 require "lab2"
 
 graph.FONT.body = love.graphics.newFont("Cantarell-Regular.otf", 12)
 graph.FONT.title = love.graphics.newFont("Cantarell-Regular.otf", 18)
-
-function rand_double(min, max)
-   return love.math.random() * (max - min) + min
-end
 
 function det(a,b,c)
     return (a[1]-c[1]) * (b[2]-c[2])
