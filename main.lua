@@ -1,7 +1,7 @@
 UI = require "UI"
 graph = require "love2d-graphs.graph"
-rand = require "rand"
 v2 = require "love2d-graphs.v2"
+rand = require "rand"
 
 lab1 = require "lab1"
 lab2 = require "lab2"

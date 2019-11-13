@@ -1,8 +1,5 @@
 local lab = {}
 
-local rand = require "rand"
-local UI = require "UI"
-
 function lab.lab2()
    local plot = function (x) autorun = false; coroutine.yield(x) end
    local autoplot = function (x) autorun = true; coroutine.yield(x) end

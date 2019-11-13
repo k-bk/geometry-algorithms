@@ -1,7 +1,5 @@
 local lab = {}
 
-local rand = require "rand"
-
 function lab.my_det(a,b,c, algo)
    m = { det = function () end }
    if algo == 1 or algo == 3 then
