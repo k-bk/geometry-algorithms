@@ -1,6 +1,8 @@
+local lab = {}
+
 local rand = require "rand"
 
-function my_det(a,b,c, algo)
+function lab.my_det(a,b,c, algo)
    m = { det = function () end }
    if algo == 1 or algo == 3 then
       return 
@@ -22,7 +24,7 @@ function my_det(a,b,c, algo)
    end
 end
 
-function lab1()
+function lab.lab1()
 
     -- 1.a)
    local points_a = { color = graph.c.blue }
@@ -83,3 +85,5 @@ function lab1()
    print(" 3. determinant 3x3, library function")
    print(" 4. determinant 2x2, library function")
 end
+
+return lab

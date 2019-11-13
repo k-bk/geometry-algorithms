@@ -1,6 +1,9 @@
-local rand = require "rand"
+local lab = {}
 
-function lab2()
+local rand = require "rand"
+local UI = require "UI"
+
+function lab.lab2()
    local plot = function (x) autorun = false; coroutine.yield(x) end
    local autoplot = function (x) autorun = true; coroutine.yield(x) end
 
@@ -51,7 +54,7 @@ function lab2()
    local strokes = { points, title = "Punkty posortowane względem "..pivot } 
    for i = 2, #points do
       table.insert(strokes, { pivot, points[i], style = "line", color = graph.c.green })
-      --autoplot( strokes )
+      autoplot( strokes )
    end
 
    local p = points
@@ -69,7 +72,7 @@ function lab2()
       else
          s[#s] = nil
       end
-      --plot { s, p, title = "Algorytm Grahama" }
+      autoplot { s, p, title = "Algorytm Grahama" }
    end
    table.insert(s, s[1])
 
@@ -101,7 +104,7 @@ function lab2()
          end
       end
 
-      -- if angle is 0 or pi
+      -- if angle is 0 or pi the points are collinear, middle is unnecessary
       if math.abs(min_angle) < eps
          or math.abs(min_angle - math.pi) < eps 
       then
@@ -120,3 +123,8 @@ function lab2()
       plot { s, points, hull, title = "Algorytm Jarvisa, koniec" }
    end
 end
+
+function lab.draw()
+end
+
+return lab

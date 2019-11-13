@@ -3,8 +3,8 @@ graph = require "love2d-graphs.graph"
 rand = require "rand"
 v2 = require "love2d-graphs.v2"
 
-require "lab1"
-require "lab2"
+lab1 = require "lab1"
+lab2 = require "lab2"
 
 graph.FONT.body = love.graphics.newFont("Cantarell-Regular.otf", 12)
 graph.FONT.title = love.graphics.newFont("Cantarell-Regular.otf", 18)
@@ -80,7 +80,7 @@ function draw_menu()
    UI.draw { x = 10, y = 10,
       {
          UI.button( "Lab 1", function () 
-            get_content = coroutine.wrap(lab1) 
+            get_content = coroutine.wrap(lab1.lab1) 
             content = get_content()
             love.draw = draw_lab
          end),
@@ -88,7 +88,7 @@ function draw_menu()
       },
       {
          UI.button( "Lab 2", function () 
-            get_content = coroutine.wrap(lab2) 
+            get_content = coroutine.wrap(lab2.lab2) 
             content = get_content()
             love.draw = draw_lab
          end),
