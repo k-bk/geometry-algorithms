@@ -22,7 +22,7 @@ function lab.my_det(a,b,c, algo)
    end
 end
 
-function lab.lab1()
+function lab.load()
 
     -- 1.a)
    local points_a = { color = graph.c.blue }
@@ -82,6 +82,8 @@ function lab.lab1()
    print(" 2. determinant 2x2, my implementation")
    print(" 3. determinant 3x3, library function")
    print(" 4. determinant 2x2, library function")
+
+   lab.load()
 end
 
 return lab
