@@ -86,4 +86,10 @@ function lab.load()
    lab.load()
 end
 
+function lab.update()
+end
+
+function lab.draw()
+end
+
 return lab

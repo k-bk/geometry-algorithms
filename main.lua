@@ -1,8 +1,7 @@
-
 UI = require "UI"
 graph = require "love2d-graphs.graph"
-v2 = require "love2d-graphs.v2"
 rand = require "rand"
+v2 = require "love2d-graphs.v2"
 
 lab1 = require "lab1"
 lab2 = require "lab2"
@@ -33,7 +32,6 @@ function orient(a,b,c)
 end
 
 function love.load()
-   autorun = false
    stoper = 0
    step = 0.05
    love.graphics.setBackgroundColor{ 1,1,1 }
@@ -41,19 +39,19 @@ function love.load()
 end
 
 function love.update(dt)
-   if autorun then
+   if lab then
       stoper = stoper + dt
       if stoper > step then
          stoper = stoper - step 
-         --content = get_content()
+         lab.update()
       end
    end
 end
 
 function love.mousepressed(x, y, button)
-   if get_content then
+   if lab then
       if button == 1 then
-         --content = get_content("skip")
+         lab.update()
       end
    end
    if button == 1 then
@@ -90,20 +88,16 @@ function draw_menu()
       {
          UI.button( "Lab 1", function () 
             lab = lab1
-            love.draw = draw_lab
+            love.draw = lab.draw 
          end),
          UI.label { "Losowe punkty" },
       },
       {
          UI.button( "Lab 2", function () 
             lab = lab2
-            love.draw = draw_lab
+            love.draw = lab.draw 
          end),
          UI.label { "Algorytmy Grahama i Jarvisa" },
       },
    }
-end
-
-function draw_lab()
-   if lab.draw then lab.draw() end
 end

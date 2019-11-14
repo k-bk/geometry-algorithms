@@ -132,6 +132,9 @@ function lab.load()
    lab.load()
 end
 
+function lab.update()
+end
+
 function lab.draw()
    UI.draw {
       {  UI.button( "Graham", function() print("run graham") end ),
