@@ -32,6 +32,7 @@ function orient(a,b,c)
 end
 
 function love.load()
+   autorun = false
    stoper = 0
    step = 0.05
    love.graphics.setBackgroundColor{ 1,1,1 }
@@ -43,15 +44,15 @@ function love.update(dt)
       stoper = stoper + dt
       if stoper > step then
          stoper = stoper - step 
-         lab.update()
+         lab.update("stoper")
       end
    end
 end
 
 function love.mousepressed(x, y, button)
-   if lab then
+   if lab and autorun then
       if button == 1 then
-         lab.update()
+         lab.update("click")
       end
    end
    if button == 1 then
@@ -83,11 +84,16 @@ function love.keypressed(key)
    end
 end
 
+function love.resize()
+   graph_canvas = love.graphics.newCanvas()
+end
+
 function draw_menu()
    UI.draw { x = 10, y = 10,
       {
          UI.button( "Lab 1", function () 
             lab = lab1
+            lab.load()
             love.draw = lab.draw 
          end),
          UI.label { "Losowe punkty" },
@@ -95,6 +101,7 @@ function draw_menu()
       {
          UI.button( "Lab 2", function () 
             lab = lab2
+            lab.load()
             love.draw = lab.draw 
          end),
          UI.label { "Algorytmy Grahama i Jarvisa" },
