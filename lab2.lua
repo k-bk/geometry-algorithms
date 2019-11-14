@@ -1,37 +1,17 @@
 local lab = {}
 
-function lab.lab2()
-   local plot = function (x) autorun = false; coroutine.yield(x) end
-   local autoplot = function (x) autorun = true; coroutine.yield(x) end
+local function plot(x) 
+   autorun = false
+   coroutine.yield(x) 
+end
+local function autoplot(x) 
+   autorun = true
+   if not skip then
+      skip = coroutine.yield(x) 
+   end
+end
 
-   points = { a = {}, b = {}, c = {} }
-   -- 1. a
-   rand.in_range(v2(-100,100), v2(-100,100), 100, points.a)
-   -- 1. b
-   rand.on_circle(v2(0,0), 10, 100, points.b)
-   -- 1. c
-   rand.on_rectangle(v2(-10,-10), v2(10,10), 100, points.c)
-   -- 1. d
-   points.d = { v2(0,0), v2(10,0), v2(10,10), v2(0,10) }
-   rand.on_segment(v2(0,0), v2(10,0), 25, points.d)
-   rand.on_segment(v2(0,0), v2(0,10), 25, points.d)
-   rand.on_segment(v2(0,0), v2(10,10), 20, points.d)
-   rand.on_segment(v2(10,0), v2(0,10), 20, points.d)
-
-   plot { points.a, title = "100 punktów z przedziału <-100,100>" }
-   plot { points.b, title = "100 punktów na okręgu o środku (0,0) i promienu 10" }
-   plot { points.c, title = "100 punktów na prostokącie (-10,-10), (10,10)" }
-   plot { points.d, title = "Punkty na bokach kwadratu i przekątnych" }
-
-   local rectangle = { graph.c.blue }
-   rand.on_rectangle(v2(0,0), v2(150,50), 30, rectangle)
-   plot { rectangle, title = "Losowe punkty na prostokącie" }
-
-   local points = { color = graph.c.blue }
-   rand.in_range(v2(-1e3,1e3), v2(-1e3,1e3), 30, points)
-   plot { points, title = "Punkty z przedziału  <-1000,1000>" }
-
-   points = rectangle
+function Graham(points)
    local pivot = points[1]
    local pivot_i = 1
    for i,p in ipairs(points) do
@@ -41,11 +21,6 @@ function lab.lab2()
       end
    end
    table.remove(points, pivot_i)
-
-   ----------------------
-   -- Algorytm Grahama 
-   ----------------------
-
    table.sort(points, function (a,b) return orient(pivot, a, b) > 0 end)
 
    local strokes = { points, title = "Punkty posortowane względem "..pivot } 
@@ -53,6 +28,7 @@ function lab.lab2()
       table.insert(strokes, { pivot, points[i], style = "line", color = graph.c.green })
       autoplot( strokes )
    end
+   plot( strokes )
 
    local p = points
    local s = { pivot, p[1], p[2], style = "line", color = graph.c.green }
@@ -77,10 +53,18 @@ function lab.lab2()
    hull.color = graph.c.red
    hull.style = "point"
    plot { s, p, hull, title = "Algorytm Grahama, koniec" }
+end
 
-   ----------------------
-   -- Algorytm Jarvisa
-   ----------------------
+function Jarvis(points)
+   local pivot = points[1]
+   local pivot_i = 1
+   for i,p in ipairs(points) do
+      if p[2] < pivot[2] or (p[2] == pivot[2] and p[1] < pivot[1]) then
+         pivot = p
+         pivot_i = i
+      end
+   end
+   table.remove(points, pivot_i)
 
    local eps = 1e-2
    local s = { v2(pivot[1]-10, pivot[2]), pivot, style = "line", color = graph.c.green }
@@ -116,12 +100,42 @@ function lab.lab2()
    local hull = { unpack(s) }
    hull.color = graph.c.red
    hull.style = "point"
-   while true do
-      plot { s, points, hull, title = "Algorytm Jarvisa, koniec" }
-   end
+   plot { s, points, hull, title = "Algorytm Jarvisa, koniec" }
+end
+
+
+function lab.load()
+
+   set = { a = {}, b = {}, c = {} }
+   -- 1. a
+   rand.in_range(v2(-100,100), v2(-100,100), 100, set.a)
+   -- 1. b
+   rand.on_circle(v2(0,0), 10, 100, set.b)
+   -- 1. c
+   rand.on_rectangle(v2(-10,-10), v2(10,10), 100, set.c)
+   -- 1. d
+   set.d = { v2(0,0), v2(10,0), v2(10,10), v2(0,10) }
+   rand.on_segment(v2(0,0), v2(10,0), 25, set.d)
+   rand.on_segment(v2(0,0), v2(0,10), 25, set.d)
+   rand.on_segment(v2(0,0), v2(10,10), 20, set.d)
+   rand.on_segment(v2(10,0), v2(0,10), 20, set.d)
+
+   points = set.a
+   plot { points, title = "100 punktów z przedziału <-100,100>" }
+   points = set.b
+   plot { points, title = "100 punktów na okręgu o środku (0,0) i promienu 10" }
+   points = set.c
+   plot { points, title = "100 punktów na prostokącie (-10,-10), (10,10)" }
+   points = set.d
+   plot { points, title = "Punkty na bokach kwadratu i przekątnych" }
+
+   lab.load()
 end
 
 function lab.draw()
+   UI.draw {
+      {  UI.button( "Graham", function() print("run graham") end ),
+         UI.button( "Jarvis", function() print("run jarvis") end ) } }
 end
 
 return lab
