@@ -1,3 +1,4 @@
+
 UI = require "UI"
 graph = require "love2d-graphs.graph"
 v2 = require "love2d-graphs.v2"
@@ -6,8 +7,12 @@ rand = require "rand"
 lab1 = require "lab1"
 lab2 = require "lab2"
 
-graph.FONT.body = love.graphics.newFont("Cantarell-Regular.otf", 12)
-graph.FONT.title = love.graphics.newFont("Cantarell-Regular.otf", 18)
+font_body = love.graphics.newFont("Cantarell-Regular.otf", 12)
+font_title = love.graphics.newFont("Cantarell-Regular.otf", 18)
+
+graph.FONT.body = font_body
+graph.FONT.title = font_title
+UI.font = font_body
 
 function det(a,b,c)
     return (a[1]-c[1]) * (b[2]-c[2])
@@ -40,15 +45,15 @@ function love.update(dt)
       stoper = stoper + dt
       if stoper > step then
          stoper = stoper - step 
-         content = get_content()
+         --content = get_content()
       end
    end
 end
 
-function love.mousepressed (x, y, button)
+function love.mousepressed(x, y, button)
    if get_content then
       if button == 1 then
-         content = get_content()
+         --content = get_content("skip")
       end
    end
    if button == 1 then
@@ -56,17 +61,21 @@ function love.mousepressed (x, y, button)
    end
 end
 
-function love.mousereleased (x, y, button)
+function love.mousereleased(x, y, button)
     if button == 1 then
         UI.mousereleased { x = x, y = y }
     end
 end
 
-function love.mousemoved (x, y)
+function love.mousemoved(x, y)
     UI.mousemoved { x = x, y = y }
 end
 
-function love.keypressed (key)
+function love.textinput(text)
+   UI.textinput(text)
+end
+
+function love.keypressed(key)
    if key == "escape" then
       if love.draw == draw_menu then
          love.event.quit()
@@ -80,16 +89,14 @@ function draw_menu()
    UI.draw { x = 10, y = 10,
       {
          UI.button( "Lab 1", function () 
-            get_content = coroutine.wrap(lab1.lab1) 
-            content = get_content()
+            lab = lab1
             love.draw = draw_lab
          end),
          UI.label { "Losowe punkty" },
       },
       {
          UI.button( "Lab 2", function () 
-            get_content = coroutine.wrap(lab2.lab2) 
-            content = get_content()
+            lab = lab2
             love.draw = draw_lab
          end),
          UI.label { "Algorytmy Grahama i Jarvisa" },
@@ -98,5 +105,5 @@ function draw_menu()
 end
 
 function draw_lab()
-   graph.graph(content)
+   if lab.draw then lab.draw() end
 end
