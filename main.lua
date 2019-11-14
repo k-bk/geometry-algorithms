@@ -34,13 +34,13 @@ end
 function love.load()
    autorun = false
    stoper = 0
-   step = 0.05
+   step = 0.3
    love.graphics.setBackgroundColor{ 1,1,1 }
    love.draw = draw_menu
 end
 
 function love.update(dt)
-   if lab then
+   if lab and autorun then
       stoper = stoper + dt
       if stoper > step then
          stoper = stoper - step 
@@ -50,7 +50,7 @@ function love.update(dt)
 end
 
 function love.mousepressed(x, y, button)
-   if lab and autorun then
+   if lab then
       if button == 1 then
          lab.update("click")
       end
@@ -74,6 +74,10 @@ function love.textinput(text)
    UI.textinput(text)
 end
 
+function love.resize()
+   lab.update("resize")
+end
+
 function love.keypressed(key)
    if key == "escape" then
       if love.draw == draw_menu then
@@ -81,11 +85,9 @@ function love.keypressed(key)
       else
          love.draw = draw_menu
       end
+   elseif key == "enter" or key == "space" then
+      lab.update("click")
    end
-end
-
-function love.resize()
-   graph_canvas = love.graphics.newCanvas()
 end
 
 function draw_menu()

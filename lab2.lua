@@ -1,73 +1,80 @@
 local lab = {}
 
+local eps = 1e-10 
+
 local function plot(x) 
    autorun = false
    coroutine.yield(x) 
 end
 local function autoplot(x) 
    autorun = true
-   if not skip then
-      skip = coroutine.yield(x) 
-   end
+   coroutine.yield(x) 
 end
 
-function Graham(points)
+function Graham(set)
+   local points = {}
+   for _,v in ipairs(set) do table.insert(points, v) end
+
    local pivot = points[1]
    local pivot_i = 1
    for i,p in ipairs(points) do
-      if p[2] < pivot[2] or (p[2] == pivot[2] and p[1] < pivot[1]) then
+      if p[2] - pivot[2] < -eps or (p[2] - pivot[2] < eps and p[1] - pivot[1] < eps) then
          pivot = p
          pivot_i = i
       end
    end
    table.remove(points, pivot_i)
-   table.sort(points, function (a,b) return orient(pivot, a, b) > 0 end)
-
-   local strokes = { points, title = "Punkty posortowane względem "..pivot } 
-   for i = 2, #points do
-      table.insert(strokes, { pivot, points[i], style = "line", color = graph.c.green })
-      plot ( strokes )
-   end
-   plot( strokes )
-
-   local p = points
-   local s = { pivot, p[1], p[2], style = "line", color = graph.c.green }
-   local i = #s + 1 
-   local m = #p
-   while i <= m do
-      o = orient(s[#s-1], s[#s], p[i])
-      if o > 0 then
-         table.insert(s, p[i])
-         i = i + 1
+   table.sort(points, function (a,b) 
+      o = orient(pivot, a, b)
+      if o > 0 then 
+         return true
       elseif o == 0 then
-         s[#s] = p[i]
-         i = i + 1
-      else
-         s[#s] = nil
+         if a[1] - b[1] < -eps then return true end
+         if a[2] - b[2] < -eps then return true end
       end
-      autoplot { s, p, title = "Algorytm Grahama" }
-   end
-   table.insert(s, s[1])
+      return false
+   end)
 
-   local hull = { unpack(s) }
-   hull.color = graph.c.red
-   hull.style = "point"
+
+   local strokes = { title = "Punkty posortowane względem "..pivot }
+   for i = 2, #points do
+      table.insert(strokes, { pivot, points[i], style = "line", color = {0,0,0,.1} })
+   end
+
+   local s = { pivot, points[1], points[2], style = "line", color = graph.c.green }
+   local i = 3 
+   local m = #points
+   for i = 3,m do
+      table.insert(s, points[i])
+      while #s >= 3 and orient(s[#s-2], s[#s-1], s[#s]) <= 0 do
+         table.remove(s, #s-1)
+      end
+      if #s >= 3 then
+         current = { s[#s-2], s[#s-1], s[#s], color = graph.c.red, style = "line" }
+         autoplot { s, current, points, title = "Algorytm Grahama" } -- , unpack(strokes) }
+      end
+   end
+   s[#s+1] = s[1]
+
+   local hull = { color = graph.c.red, unpack(s) }
    while true do
-      plot { s, p, hull, title = "Algorytm Grahama, koniec" }
+      plot { s, points, hull, title = "Algorytm Grahama, koniec" }
    end
 end
 
-function Jarvis(points)
+function Jarvis(set)
+   local points = {}
+   for _,v in ipairs(set) do table.insert(points, v) end
+
    local pivot = points[1]
    local pivot_i = 1
    for i,p in ipairs(points) do
-      if p[2] < pivot[2] or (p[2] == pivot[2] and p[1] < pivot[1]) then
+      if p[2] - pivot[2] < -eps or (p[2] - pivot[2] < eps and p[1] - pivot[1] < eps) then
          pivot = p
          pivot_i = i
       end
    end
 
-   local eps = 1e-5
    local s = { pivot, style = "line", color = graph.c.green }
    s[0] = pivot - v2(20,0) 
 
@@ -95,75 +102,100 @@ function Jarvis(points)
       end
 
       if #s >= 2 then
-         autoplot { s, points, { color = graph.c.red, unpack(s) }, title = "Algorytm Jarvisa" }
+         plot { s, points, { color = graph.c.red, unpack(s) }, title = "Algorytm Jarvisa" }
       end
-   until min_p == pivot 
+   until #s >= 2 and min_p == s[1] 
 
-   local hull = { unpack(s) }
-   hull.color = graph.c.red
-   hull.style = "point"
+   local hull = { color = graph.c.red, unpack(s) }
    while true do
       plot { s, points, hull, title = "Algorytm Jarvisa, koniec" }
    end
 end
 
+function point_sets()
+   local a, b, c = {}, {}, {}
+   -- 1. a
+   rand.in_range(v2(-100,100), v2(-100,100), 25, a)
+   -- 1. b
+   rand.on_circle(v2(0,0), 10, 100, b)
+   -- 1. c
+   rand.on_rectangle(v2(-10,-10), v2(10,10), 100, c)
+   -- 1. d
+   local d = { v2(0,0), v2(10,0), v2(10,10), v2(0,10) }
+   rand.on_segment(v2(0,0), v2(10,0), 25, d)
+   rand.on_segment(v2(0,0), v2(0,10), 25, d)
+   rand.on_segment(v2(0,0), v2(10,10), 20, d)
+   rand.on_segment(v2(10,0), v2(0,10), 20, d)
+
+   sets = {
+      { a, title = "100 punktów z przedziału <-100,100>" },
+      { b, title = "100 punktów na okręgu o środku (0,0) i promienu 10" },
+      { c, title = "100 punktów na prostokącie (-10,-10), (10,10)" },
+      { d, title = "Punkty na bokach kwadratu i przekątnych" },
+   }
+
+   while true do
+      for _,set in ipairs(sets) do
+         coroutine.yield(set)
+      end
+   end
+
+end
 
 function lab.load()
 
+   graph_canvas_offset = 40
    graph_canvas = love.graphics.newCanvas(love.window.getDesktopDimensions())
+   get_point_set = coroutine.wrap(point_sets)
 
-   local points
-   local set = { a = {}, b = {}, c = {} }
-   -- 1. a
-   rand.in_range(v2(-100,100), v2(-100,100), 100, set.a)
-   -- 1. b
-   rand.on_circle(v2(0,0), 10, 100, set.b)
-   -- 1. c
-   rand.on_rectangle(v2(-10,-10), v2(10,10), 100, set.c)
-   -- 1. d
-   set.d = { v2(0,0), v2(10,0), v2(10,10), v2(0,10) }
-   rand.on_segment(v2(0,0), v2(10,0), 25, set.d)
-   rand.on_segment(v2(0,0), v2(0,10), 25, set.d)
-   rand.on_segment(v2(0,0), v2(10,10), 20, set.d)
-   rand.on_segment(v2(10,0), v2(0,10), 20, set.d)
+   function change_points()
+      animation = false
+      set = get_point_set()
+      content = set
+      points = set[1]
+      lab.update()
+   end
+   function run_graham() 
+      animation = true
+      get_content = coroutine.wrap(function () return Graham(points) end) 
+   end
+   function run_jarvis() 
+      animation = true
+      get_content = coroutine.wrap(function () return Jarvis(points) end) 
+   end
 
-   points = set.a
-   plot { points, title = "100 punktów z przedziału <-100,100>" }
-   points = set.b
-   plot { points, title = "100 punktów na okręgu o środku (0,0) i promienu 10" }
-   points = set.c
-   plot { points, title = "100 punktów na prostokącie (-10,-10), (10,10)" }
-   --points = set.d
-   plot { points, title = "Punkty na bokach kwadratu i przekątnych" }
-
-   run_graham = function () get_content = coroutine.wrap(function () return Graham(points) end) end
-   run_jarvis = function () get_content = coroutine.wrap(function () return Jarvis(points) end) end
-
-   run_graham()
-   content = get_content()
+   change_points()
+   run_jarvis()
 end
 
 function lab.update(input)
    if input == "click" then
-      content = get_content()
+      if animation then
+         content = get_content()
+      end
    elseif input == "stoper" then
+      if animation and autorun then
+         content = get_content()
+      end
    end
+
+   local w, h = love.graphics.getDimensions()
+   love.graphics.setCanvas(graph_canvas)
+   graph.graph(content, { width = w - graph_canvas_offset - 10, height = h })
+   love.graphics.setCanvas()
 end
 
 function lab.draw()
 
-   local ui_x, ui_y = 10,10
-   local w, h = love.graphics.getDimensions()
-   local offset_x, _ = UI.draw { x = ui_x, y = ui_y,
+   graph_canvas_offset, _ = UI.draw { x = 10, y = 10,
+      UI.button( "Punkty", change_points ),
+      UI.label {""},
       UI.button( "Graham", run_graham ),
       UI.button( "Jarvis", run_jarvis ),
    }
-   love.graphics.setCanvas(graph_canvas)
-   graph.graph(content, { width = w - offset_x - ui_x, height = h - ui_y })
-   love.graphics.setCanvas()
-   love.graphics.setColor(1,1,1)
-   love.graphics.draw(graph_canvas, offset_x + ui_x)
 
+   love.graphics.setColor(1,1,1)
+   love.graphics.draw(graph_canvas, graph_canvas_offset + 10)
 end
 
 return lab
