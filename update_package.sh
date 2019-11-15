@@ -1,24 +1,27 @@
 #!/bin/bash
-# Updates packages given as github links
+# Updates packages given as 'user/repo/branch/file' links
 
+# Directory for downloading packages
+PKG_DIR=lib
+[[ -d $PKG_DIR ]] || mkdir -p $PKG_DIR
+
+# Split $1 into variables
 arg=$( echo $1 | sed 's|^/||' )
-user=$( echo $arg | cut -f1 -d/ )
-repo=$( echo $arg | cut -f2 -d/)
-branch=$( echo $arg | cut -f3 -d/)
-file=$( echo $arg | cut -f4 -d/)
+IFS=/ read user repo branch file <<< $arg
 
 url="https://api.github.com/repos/$user/$repo/commits/$branch?path=$file"
 raw_url="https://raw.githubusercontent.com/$user/$repo/$branch/$file"
 
-if [[ -f $file ]]; then
+package=$PKG_DIR/$file
+if [[ -f $package ]]; then
+    # fetch modification timestamps from local file and file on github.com
     remote_timestamp=$( curl -s -I $url | grep "Last-Modified:" | sed 's/Last-Modified://' | date -f - +%s )
-    local_timestamp=$(stat -c%Y $file)
+    local_timestamp=$(stat -c%Y $package)
     if [[ $local_timestamp -ge $remote_timestamp ]]; then
-        echo "✔ $file"
+        echo "✔ $package"
         exit 0
     fi
 fi
 
-echo "✘ $file"
-curl --progress-bar $raw_url -o $file
-exit 0
+echo "✘ $package"
+curl --progress-bar $raw_url -o $package

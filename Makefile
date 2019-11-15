@@ -1,4 +1,5 @@
-PACKAGES = UI.lua v2.lua graph.lua
+PACKAGES := UI.lua v2.lua graph.lua
+PACKAGES := $(PACKAGES:%=lib/%)
 
 define update
 @./update_package.sh "karolBak/love2d-ui/master/UI.lua"

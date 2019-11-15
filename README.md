@@ -4,8 +4,6 @@ Presentation of computational geometry algorithms.
 
 ## Running
 
-Run `git submodule update --init` to clone the `love2d-graph` submodule.
-
 Then `make` to run the program. It will download `love` executable.
 
 *Written in [Lua](https://www.lua.org/) using awesome [love2d](https://love2d.org/) framework.*
