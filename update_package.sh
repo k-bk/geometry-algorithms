@@ -6,11 +6,12 @@ PKG_DIR=lib
 [[ -d $PKG_DIR ]] || mkdir -p $PKG_DIR
 
 # Split $1 into variables
-arg=$( echo $1 | sed 's|^/||' )
-IFS=/ read user repo branch file <<< $arg
+arg=$( echo $1 | sed 's|//*| |g' )
+read user repo branch file <<< $arg
 
 url="https://api.github.com/repos/$user/$repo/commits/$branch?path=$file"
 raw_url="https://raw.githubusercontent.com/$user/$repo/$branch/$file"
+echo $url $raw_url
 
 package=$PKG_DIR/$file
 if [[ -f $package ]]; then
