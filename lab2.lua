@@ -57,12 +57,12 @@ function Graham(set)
    s[#s+1] = s[1]
 
    local hull = { color = graph.c.red, unpack(s) }
-   while true do
-      plot { s, points, hull, title = "Algorytm Grahama, koniec" }
-   end
+   plot { s, points, hull, title = "Algorytm Grahama, koniec" }
+   return 
 end
 
 function Jarvis(set)
+
    local points = {}
    for _,v in ipairs(set) do table.insert(points, v) end
 
@@ -107,9 +107,7 @@ function Jarvis(set)
    until #s >= 2 and min_p == s[1] 
 
    local hull = { color = graph.c.red, unpack(s) }
-   while true do
-      plot { s, points, hull, title = "Algorytm Jarvisa, koniec" }
-   end
+   plot { s, points, hull, title = "Algorytm Jarvisa, koniec" }
 end
 
 function point_sets()
@@ -144,6 +142,35 @@ end
 
 function lab.load()
 
+   --[[
+   gettime = love.timer.getTime
+   -- time measurements
+   for count=1000000,1500000,1000 do 
+      local a, b, c = {}, {}, {}
+      rand.in_range(v2(-100,100), v2(-100,100), count, a)
+      rand.on_circle(v2(0,0), 10, count, b)
+      rand.on_rectangle(v2(-10,-10), v2(10,10), count, c)
+      local d = { v2(0,0), v2(10,0), v2(10,10), v2(0,10) }
+      rand.on_segment(v2(0,0), v2(10,0), count/4, d)
+      rand.on_segment(v2(0,0), v2(0,10), count/4, d)
+      rand.on_segment(v2(0,0), v2(10,10), count/4, d)
+      rand.on_segment(v2(10,0), v2(0,10), count/4, d)
+
+      print("count: "..count)
+
+      for i,test in ipairs{ a,b,c,d } do
+         print("Zestaw "..i)
+         local stime = gettime() 
+         Graham(test)
+         print(("Graham: %.3f"):format(gettime() - stime))
+
+         local stime = gettime() 
+         Jarvis(test)
+         print(("Jarvis: %.3f"):format(gettime() - stime))
+      end
+   end
+   --]]
+
    graph_canvas_offset = 40
    graph_canvas = love.graphics.newCanvas(love.window.getDesktopDimensions())
    get_point_set = coroutine.wrap(point_sets)
@@ -170,11 +197,11 @@ end
 
 function lab.update(input)
    if input == "click" then
-      if animation then
+      if animation and content then
          content = get_content()
       end
    elseif input == "stoper" then
-      if animation and autorun then
+      if animation and autorun and content then
          content = get_content()
       end
    end
