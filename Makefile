@@ -1,11 +1,22 @@
-run: UI.lua love
-	./love .
+PACKAGES = UI.lua v2.lua graph.lua
 
-UI.lua:
-	wget https://raw.githubusercontent.com/karolBak/love2d-ui/master/UI.lua
+define update
+@./update_package.sh "karolBak/love2d-ui/master/UI.lua"
+@./update_package.sh "karolBak/love2d-graphs/master/v2.lua"
+@./update_package.sh "karolBak/love2d-graphs/master/graph.lua"
+endef
+
+run: love $(PACKAGES)
+	./love .
 
 love:
 	wget -L -O love https://bitbucket.org/rude/love/downloads/love-11.3-x86_64.AppImage
 	chmod +x love
 
-.PHONY: run
+$(PACKAGES):
+	$(update)
+
+update:
+	$(update)
+
+.PHONY: run update
