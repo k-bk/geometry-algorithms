@@ -7,13 +7,14 @@ PKG_DIR=lib
 
 # Split $1 into variables
 arg=$( echo $1 | sed 's|//*| |g' )
-read user repo branch file <<< $arg
+read user repo branch <<< $arg
+file=$2
 
 url="https://api.github.com/repos/$user/$repo/commits/$branch?path=$file"
 raw_url="https://raw.githubusercontent.com/$user/$repo/$branch/$file"
-echo $url $raw_url
+echo $raw_url
 
-package=$PKG_DIR/$file
+package=$PKG_DIR/$(basename $file)
 if [[ -f $package ]]; then
     # fetch modification timestamps from local file and file on github.com
     remote_timestamp=$( curl -s -I $url | grep "Last-Modified:" | sed 's/Last-Modified://' | date -f - +%s )

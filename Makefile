@@ -2,9 +2,9 @@ PACKAGES := UI.lua v2.lua graph.lua
 PACKAGES := $(PACKAGES:%=lib/%)
 
 define update
-@./update_package.sh "karolBak/love2d-ui/master/UI.lua"
-@./update_package.sh "karolBak/love2d-graphs/master/v2.lua"
-@./update_package.sh "karolBak/love2d-graphs/master/graph.lua"
+@./update_package.sh "karolBak/love2d-ui/master/" "UI.lua"
+@./update_package.sh "karolBak/love2d-graphs/master/" "v2.lua"
+@./update_package.sh "karolBak/love2d-graphs/master/" "graph.lua"
 endef
 
 run: love $(PACKAGES)
