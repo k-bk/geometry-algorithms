@@ -43,4 +43,14 @@ function rand.on_rectangle(a, b, count, buffer)
    return buffer
 end
 
+function rand.segments(xrange, yrange, count, buffer)
+   local buffer = buffer or {}
+   for i = 1,count do
+      for _,p in ipairs(buffer) do
+         local p1 = v2(rand.double(xrange[1], xrange[2]), rand.double(yrange[1], yrange[2]))
+         local p2 = v2(rand.double(xrange[1], xrange[2]), rand.double(yrange[1], yrange[2]))
+      end
+   end
+end
+
 return rand
