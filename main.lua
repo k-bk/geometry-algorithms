@@ -1,7 +1,8 @@
-UI = require "lib/UI"
-graph = require "lib/graph"
 rand = require "rand"
-v2 = require "lib/v2"
+
+UI = require "lib.UI"
+graph = require "lib.graph"
+v2 = require "lib.v2"
 
 lab1 = require "lab1"
 lab2 = require "lab2"

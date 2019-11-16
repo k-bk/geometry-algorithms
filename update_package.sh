@@ -12,7 +12,6 @@ file=$2
 
 url="https://api.github.com/repos/$user/$repo/commits/$branch?path=$file"
 raw_url="https://raw.githubusercontent.com/$user/$repo/$branch/$file"
-echo $raw_url
 
 package=$PKG_DIR/$(basename $file)
 if [[ -f $package ]]; then
