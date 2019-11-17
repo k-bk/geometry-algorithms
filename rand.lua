@@ -43,14 +43,27 @@ function rand.on_rectangle(a, b, count, buffer)
    return buffer
 end
 
+local eps = 1e-8
 function rand.segments(xrange, yrange, count, buffer)
    local buffer = buffer or {}
-   for i = 1,count do
+   local i = 0
+   while i < count do
+      local p1 = v2(rand.double(xrange[1], xrange[2]), rand.double(yrange[1], yrange[2]))
+      local p2 = v2(rand.double(xrange[1], xrange[2]), rand.double(yrange[1], yrange[2]))
+      local segment_valid = math.abs(p1[1] - p2[1]) > eps 
       for _,p in ipairs(buffer) do
-         local p1 = v2(rand.double(xrange[1], xrange[2]), rand.double(yrange[1], yrange[2]))
-         local p2 = v2(rand.double(xrange[1], xrange[2]), rand.double(yrange[1], yrange[2]))
+         if (p1 - p):len() < eps or (p2 - p):len() < eps then
+            segment_valid = false
+            break
+         end
+      end
+      if segment_valid then
+         i = i + 1
+         table.insert(buffer, p1)
+         table.insert(buffer, p2)
       end
    end
+   return buffer
 end
 
 return rand
