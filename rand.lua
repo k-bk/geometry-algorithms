@@ -51,16 +51,17 @@ function rand.segments(xrange, yrange, count, buffer)
       local p1 = v2(rand.double(xrange[1], xrange[2]), rand.double(yrange[1], yrange[2]))
       local p2 = v2(rand.double(xrange[1], xrange[2]), rand.double(yrange[1], yrange[2]))
       local segment_valid = math.abs(p1[1] - p2[1]) > eps 
-      for _,p in ipairs(buffer) do
-         if (p1 - p):len() < eps or (p2 - p):len() < eps then
-            segment_valid = false
-            break
+      for _,seg in ipairs(buffer) do 
+         for _,p in ipairs(seg) do
+            if (p1 - p):len() < eps or (p2 - p):len() < eps then
+               segment_valid = false
+               break
+            end
          end
       end
       if segment_valid then
          i = i + 1
-         table.insert(buffer, p1)
-         table.insert(buffer, p2)
+         table.insert(buffer, { p1, p2 })
       end
    end
    return buffer
