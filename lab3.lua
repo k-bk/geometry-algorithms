@@ -32,16 +32,19 @@ function sweep(segments)
 
 end
 
-function btree(root)
-   local bt = { value = root }
+function btree()
+   local bt = {}
    function bt.insert(node, val)
       if not node then
          node = { value = val }
-      elseif val <= node.value then
-         bt.insert(node.left, val)
-      elseif val > bt.value then
-         bt.insert(node.right, val)
+      elseif not node.value then
+         node.value = val
+      elseif val < node.value then
+         node.left = bt.insert(node.left, val) 
+      else
+         node.right = bt.insert(node.right, val) 
       end
+      return node
    end
    function bt.inorder(node, val)
       if node then
