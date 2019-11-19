@@ -1,4 +1,5 @@
 rand = require "rand"
+btree = require "btree"
 
 UI = require "lib.UI"
 graph = require "lib.graph"
