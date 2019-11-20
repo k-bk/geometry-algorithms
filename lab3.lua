@@ -1,9 +1,24 @@
 local lab = {}
 
-function intersection(p, q)
-   return orient(p[1], p[2], q[1]) ~= orient(p[1], p[2], q[2]) 
-      and orient(q[1], q[2], p[1]) ~= orient(q[1], q[2], p[2]) 
+function intersecting(p, q)
+   local a,b,c,d = p[1],p[2],q[1],q[2]
+   return orient(a, b, c) ~= orient(a, b, d) 
+      and orient(c, d, a) ~= orient(c, d, b) 
 end
+
+function intersection_point(p, q)
+   local a,b,c,d = p[1],p[2],q[1],q[2]
+   local ab = a - b
+   local cd = c - d
+   local det_ab = det2(a, b)
+   local det_cd = det2(c, d)
+   local det_ab_cd = det2(ab, cd)
+
+   local px = (det_ab * cd[1] - det_cd * ab[1]) / det_ab_cd
+   local py = (det_ab * cd[2] - det_cd * ab[2]) / det_ab_cd
+   return v2(px, py)
+end
+
 
 function sweep(segments)
 
@@ -13,19 +28,19 @@ function sweep(segments)
    while #events > 0 do
       if segment_start then
          a,b = neighbours(T, s)
-         if a and intersection(a, s) then
-            Q:insert(intersection(a,s))
+         if a and intersecting(a, s) then
+            Q:insert(intersection_point(a,s))
          end
-         if b and intersection(b, s) then
-            Q:insert(intersection(b,s))
+         if b and intersecting(b, s) then
+            Q:insert(intersection_point(b,s))
          end
       end
 
       if segment_end then
          T:remove(s)
          a,b = neighbours(T, s)
-         if a and b and intersection(a, b) then
-            Q:insert(intersection(a,b))
+         if a and b and intersecting(a, b) then
+            Q:insert(intersection_point(a,b))
          end
       end
 

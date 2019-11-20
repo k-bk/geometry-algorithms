@@ -16,14 +16,18 @@ graph.FONT.body = font_body
 graph.FONT.title = font_title
 UI.font = font_body
 
-function det(a,b,c)
+function det2(a,b)
+   return a[1]*b[2] - a[2]*b[1]
+end
+
+function det3(a,b,c)
     return (a[1]-c[1]) * (b[2]-c[2])
          - (a[2]-c[2]) * (b[1]-c[1])
 end
 
 function orient(a,b,c)
    if a == b or b == c or c == a then return 0 end
-   local d = det(a,b,c)
+   local d = det3(a,b,c)
    local eps = 1e-10
    if d > eps then 
       return 1
