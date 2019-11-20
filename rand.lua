@@ -61,7 +61,11 @@ function rand.segments(xrange, yrange, count, buffer)
       end
       if segment_valid then
          i = i + 1
-         table.insert(buffer, { p1, p2 })
+         if p1[1] < p2[1] then
+            table.insert(buffer, { p1, p2 })
+         else
+            table.insert(buffer, { p2, p1 })
+         end
       end
    end
    return buffer

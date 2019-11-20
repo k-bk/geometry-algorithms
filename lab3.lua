@@ -19,33 +19,61 @@ function intersection_point(p, q)
    return v2(px, py)
 end
 
+function y_order(s, x)
+   local a,b = s[1],s[2]
+   local t = (x - b[1]) / (a[1] - b[1])
+   return a*t + b*(1 - t)
+end
 
 function sweep(segments)
 
-   local T = btree()
-   local Q = btree()
+   local L = -math.huge
 
-   while #events > 0 do
-      if segment_start then
-         a,b = neighbours(T, s)
-         if a and intersecting(a, s) then
-            Q:insert(intersection_point(a,s))
+   local T = btree(function(p,q) 
+      return y_order(p.key, L) < y_order(q.key, L)
+   end)
+   local Q = btree(function(p,q) return p.key[1] < q.key[1] end)
+
+   for _,s in ipairs(segments) do
+      Q:insert { key = s[1], value = s, type = "left" }
+      Q:insert { key = s[2], value = s, type = "right" }
+   end
+
+   while not Q:empty() do
+      e = Q:pop_min()
+      L = e.key[1]
+
+      local type = evt_type(e)
+
+      if type == "left" then
+         T:insert(e.value)
+         a,b = neighbours(T, e.value)
+         if a and intersecting(a, e.value) then
+            Q:insert { key = intersection_point(a, e.value), value = { a, e.value }, type = "crossing" }
          end
-         if b and intersecting(b, s) then
-            Q:insert(intersection_point(b,s))
+         if b and intersecting(b, e.key) then
+            Q:insert { key = intersection_point(b, e.value), value = { e.value, b }, type = "crossing" }
          end
       end
 
-      if segment_end then
-         T:remove(s)
-         a,b = neighbours(T, s)
+      if type == "right" then
+         T:remove(e.value)
+         a,b = neighbours(T, e.value)
          if a and b and intersecting(a, b) then
-            Q:insert(intersection_point(a,b))
+            Q:insert { key = intersection_point(a,b), value = { a,b }, type = "crossing" }
          end
       end
 
-      if segment_intersection then
-         
+      if type == "crossing" then
+         T:remove(e.value)
+         a,b = e.value[1], e.value[2]
+         w, _, _, s = neighbours(T, a), neighbours(T, b)
+         if intersecting(w, a) then
+            Q:insert { key = intersection_point(w, a), value = { w,a }, type = "crossing" }
+         end
+         if intersecting(s, b) then
+            Q:insert { key = intersection_point(s, b), value = { s,b }, type = "crossing" }
+         end
       end
    end
 
@@ -54,10 +82,13 @@ end
 function lab.load()
    range = v2(-100, 100)
    segments = rand.segments(range, range, 30)
+   sweep(segments)
+   --[[
    for _,seg in ipairs(segments) do 
       seg.style = "line"
       seg.color = graph.c.blue
    end
+   --]]
 end
 
 function lab.update()
