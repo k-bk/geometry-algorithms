@@ -43,7 +43,7 @@ function rand.on_rectangle(a, b, count, buffer)
    return buffer
 end
 
-local eps = 1e-8
+local eps = 1e-3
 function rand.segments(xrange, yrange, count, buffer)
    local buffer = buffer or {}
    local i = 0

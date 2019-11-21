@@ -1,6 +1,11 @@
 local function btree(lt)
-   local bt = { value = math.huge }
-   local lt = lt or (function(p,q) return p < q end)
+   local bt = { value = "root" }
+   local lt = 
+   function(p,q) 
+      if p == "root" then return false end 
+      if q == "root" then return true end
+      if lt then return lt(p,q) else return p < q end 
+   end
    local gt = function(p,q) return lt(q,p) end
    local eq = not (lt or gt)
 
@@ -17,7 +22,7 @@ local function btree(lt)
    function bt.insert(node, val)
       if not node then
          node = { value = val }
-      elseif lt(val, node.value) or bt.empty(node) then
+      elseif lt(val, node.value) then
          node.left = bt.insert(node.left, val) 
          node.left.parent = node
       elseif gt(val, node.value) then
@@ -28,13 +33,11 @@ local function btree(lt)
    end
 
    function bt.replace(node, with)
-      if node.parent then
-         if node == node.parent.left then 
-            node.parent.left = with
-         end
-         if node == node.parent.right then 
-            node.parent.right = with 
-         end
+      if node == node.parent.left then 
+         node.parent.left = with
+      end
+      if node == node.parent.right then 
+         node.parent.right = with 
       end
       if with then with.parent = node.parent end
    end
@@ -111,17 +114,16 @@ end
 
 function test(n)
    math.randomseed(os.time())
-   t = btree() 
+   t = btree(function(p,q) return p[1] < q[1] end) 
    for i = 1,n do 
       local v = math.random()
-      print(i,v) 
-      t:insert(v) 
+      t:insert({v}) 
    end
 
    i = 0
    repeat
       i = i + 1
-      print(i, " pop: "..t:pop())
+      print(i, " pop: "..t:pop()[1])
    until t:empty() 
 end
 

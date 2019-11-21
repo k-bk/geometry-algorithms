@@ -1,5 +1,14 @@
 local lab = {}
 
+local function plot(x) 
+   autorun = false
+   coroutine.yield(x) 
+end
+local function autoplot(x) 
+   autorun = true
+   coroutine.yield(x) 
+end
+
 function intersecting(p, q)
    local a,b,c,d = p[1],p[2],q[1],q[2]
    return orient(a, b, c) ~= orient(a, b, d) 
@@ -25,6 +34,10 @@ function y_order(s, x)
    return a*t + b*(1 - t)
 end
 
+function neighbours(node)
+   return node:prev(), node:next()
+end
+
 function sweep(segments)
 
    local L = -math.huge
@@ -40,12 +53,14 @@ function sweep(segments)
    end
 
    while not Q:empty() do
-      e = Q:pop_min()
+      Q:inorder(print)
+      e = Q:pop()
       L = e.key[1]
+      plot { v2(L,range[1]), v2(L,range[2]), color = graph.c.red, style = "line" }
+   end
 
-      local type = evt_type(e)
-
-      if type == "left" then
+      --[[
+      if e.type == "left" then
          T:insert(e.value)
          a,b = neighbours(T, e.value)
          if a and intersecting(a, e.value) then
@@ -56,7 +71,7 @@ function sweep(segments)
          end
       end
 
-      if type == "right" then
+      if e.type == "right" then
          T:remove(e.value)
          a,b = neighbours(T, e.value)
          if a and b and intersecting(a, b) then
@@ -64,7 +79,7 @@ function sweep(segments)
          end
       end
 
-      if type == "crossing" then
+      if e.type == "crossing" then
          T:remove(e.value)
          a,b = e.value[1], e.value[2]
          w, _, _, s = neighbours(T, a), neighbours(T, b)
@@ -75,27 +90,33 @@ function sweep(segments)
             Q:insert { key = intersection_point(s, b), value = { s,b }, type = "crossing" }
          end
       end
-   end
+      --]]
 
 end
 
 function lab.load()
    range = v2(-100, 100)
-   segments = rand.segments(range, range, 30)
-   sweep(segments)
-   --[[
+   segments = rand.segments(range, range, 7)
    for _,seg in ipairs(segments) do 
       seg.style = "line"
       seg.color = graph.c.blue
    end
-   --]]
+   get_content = coroutine.wrap(function() sweep(segments) end)
+   content = get_content()
 end
 
-function lab.update()
+function lab.update(input)
+   if input == "click" then
+      content = get_content()
+   elseif input == "stoper" then
+      if autorun then
+         content = get_content()
+      end
+   end
 end
 
 function lab.draw()
-   graph.graph { title = "Losowe odcinki w przedziale "..range, unpack(segments) }
+   graph.graph { content, title = "Znajdowanie przecięć przez zamiatanie", unpack(segments) }
 end
 
 return lab
