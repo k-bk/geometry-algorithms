@@ -8,6 +8,7 @@ v2 = require "lib.v2"
 lab1 = require "lab1"
 lab2 = require "lab2"
 lab3 = require "lab3"
+lab4 = require "lab4"
 
 font_body = love.graphics.newFont("Cantarell-Regular.otf", 15)
 font_title = love.graphics.newFont("Cantarell-Regular.otf", 18)
@@ -59,7 +60,7 @@ end
 function love.mousepressed(x, y, button)
    if lab then
       if button == 1 then
-         lab.update("click")
+         lab.update("click", x, y)
       end
    end
    if button == 1 then
@@ -122,6 +123,14 @@ function draw_menu()
             love.draw = lab.draw 
          end),
          UI.label { "Przecinające się odcinki, zamiatanie" }
+      },
+      {
+         UI.button( "Lab 4", function () 
+            lab = lab4
+            lab.load()
+            love.draw = lab.draw 
+         end),
+         UI.label { "Wielokąty y-monotoniczne" }
       },
    }
 end

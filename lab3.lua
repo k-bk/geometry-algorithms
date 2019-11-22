@@ -8,14 +8,23 @@ local function autoplot(x)
    autorun = true
    coroutine.yield(x) 
 end
+local function as_lines(x)
+   for _,s in ipairs(x) do
+      s.style = "line"
+      s.color = { 0.5, 0.5, 0.5 }
+   end
+end
+
 
 function intersecting(p, q)
+   if p == q then return false end
    local a,b,c,d = p[1],p[2],q[1],q[2]
    return orient(a, b, c) ~= orient(a, b, d) 
       and orient(c, d, a) ~= orient(c, d, b) 
 end
 
 function intersection_point(p, q)
+   if p == q then return false end
    local a,b,c,d = p[1],p[2],q[1],q[2]
    local ab = a - b
    local cd = c - d
@@ -31,20 +40,38 @@ end
 function y_order(s, x)
    local a,b = s[1],s[2]
    local t = (x - b[1]) / (a[1] - b[1])
-   return a*t + b*(1 - t)
+   return a[2]*t + b[2]*(1 - t)
 end
 
-function neighbours(node)
-   return node:prev(), node:next()
+function neighbours(btree, value)
+   for i,v in ipairs(btree) do
+      if v == value then
+         return btree[i-1], btree[i+1]
+      end
+   end
+end
+
+function rem(btree, value)
+   for i,v in ipairs(btree) do
+      if v == value then
+         table.remove(btree, i)
+         return
+      end
+   end
 end
 
 function sweep(segments)
+   local ts = tostring
 
    local L = -math.huge
 
-   local T = btree(function(p,q) 
-      return y_order(p.key, L) < y_order(q.key, L)
-   end)
+   local T = {}
+   function redoT() 
+      table.sort(T, function(p,q) 
+         return y_order(p, L) < y_order(q, L)
+      end)
+   end
+
    local Q = btree(function(p,q) return p.key[1] < q.key[1] end)
 
    for _,s in ipairs(segments) do
@@ -52,57 +79,82 @@ function sweep(segments)
       Q:insert { key = s[2], value = s, type = "right" }
    end
 
-   while not Q:empty() do
-      Q:inorder(print)
-      e = Q:pop()
-      L = e.key[1]
-      plot { v2(L,range[1]), v2(L,range[2]), color = graph.c.red, style = "line" }
+   local cross = { color = graph.c.red }
+
+   function process_cross(a,b)
+      local cross_point = intersection_point(a,b)
+      if cross_point[1] > L then
+         table.insert(cross, cross_point)
+         Q:insert { key = cross_point, value = { a,b }, type = "crossing" }
+         print(("crossing: < %s, %s >  < %s, %s > in point %s"):format(ts(a[1]), ts(a[2]), ts(b[1]), ts(b[2]), ts(cross_point)))
+      end
    end
 
-      --[[
+   while not Q:empty() do
+      e = Q:pop()
+      L = e.key[1]
+      sweep_line = { v2(L,range[1]), v2(L,range[2]), color = graph.c.red, style = "line" }
+
       if e.type == "left" then
-         T:insert(e.value)
+         table.insert(T, e.value)
+         redoT()
          a,b = neighbours(T, e.value)
          if a and intersecting(a, e.value) then
-            Q:insert { key = intersection_point(a, e.value), value = { a, e.value }, type = "crossing" }
+            process_cross(a, e.value)
          end
-         if b and intersecting(b, e.key) then
-            Q:insert { key = intersection_point(b, e.value), value = { e.value, b }, type = "crossing" }
+         if b and intersecting(b, e.value) then
+            process_cross(b, e.value)
          end
       end
 
       if e.type == "right" then
-         T:remove(e.value)
          a,b = neighbours(T, e.value)
+         rem(T, e.value)
          if a and b and intersecting(a, b) then
-            Q:insert { key = intersection_point(a,b), value = { a,b }, type = "crossing" }
+            process_cross(a, b)
          end
       end
 
       if e.type == "crossing" then
-         T:remove(e.value)
+         --[[
+         redoT()
          a,b = e.value[1], e.value[2]
-         w, _, _, s = neighbours(T, a), neighbours(T, b)
-         if intersecting(w, a) then
-            Q:insert { key = intersection_point(w, a), value = { w,a }, type = "crossing" }
+         w1, w2, w3, w4 = neighbours(T, a), neighbours(T, b)
+         for w in ipairs { w1, w2, w3, w4 } do
+            if w and a and intersecting(w, a) then
+               process_cross(w, a)
+            end
+            if w and b and intersecting(w, b) then
+               process_cross(w, b)
+            end
          end
-         if intersecting(s, b) then
-            Q:insert { key = intersection_point(s, b), value = { s,b }, type = "crossing" }
-         end
+         --]]
       end
-      --]]
+
+      print("size T:", #T)
+      as_lines(T)
+      to_plot = { unpack(T) }
+      print("size toplot:", #to_plot)
+      table.insert(to_plot, cross)
+      table.insert(to_plot, sweep_line)
+      plot(to_plot)
+   end
 
 end
 
 function lab.load()
+   graph_canvas_offset = 40
+   graph_canvas = love.graphics.newCanvas(love.window.getDesktopDimensions())
+
    range = v2(-100, 100)
-   segments = rand.segments(range, range, 7)
+   segments = rand.segments(range, range, 20)
    for _,seg in ipairs(segments) do 
       seg.style = "line"
-      seg.color = graph.c.blue
+      seg.color = { 0,0,1 }
    end
    get_content = coroutine.wrap(function() sweep(segments) end)
    content = get_content()
+   lab.update()
 end
 
 function lab.update(input)
@@ -113,10 +165,28 @@ function lab.update(input)
          content = get_content()
       end
    end
+
+   local w, h = love.graphics.getDimensions()
+   love.graphics.setCanvas(graph_canvas)
+
+   local cc = { title = "Znajdowanie przecięć przez zamiatanie", unpack(segments) }
+   for _,v in ipairs(content) do
+      table.insert(cc,v)
+   end
+   graph.graph(cc, { width = w - graph_canvas_offset - 10, height = h })
+
+   love.graphics.setCanvas()
 end
 
 function lab.draw()
-   graph.graph { content, title = "Znajdowanie przecięć przez zamiatanie", unpack(segments) }
+   graph_canvas_offset, _ = UI.draw { x = 10, y = 10,
+      UI.button( "Losuj", function() lab.load() end ),
+      UI.button( "Start", function() animation = true end ),
+      UI.button( "Stop", function() animation = false end ),
+   }
+
+   love.graphics.setColor(1,1,1)
+   love.graphics.draw(graph_canvas, graph_canvas_offset + 10)
 end
 
 return lab

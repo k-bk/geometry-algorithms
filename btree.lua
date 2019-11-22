@@ -7,7 +7,7 @@ local function btree(lt)
       if lt then return lt(p,q) else return p < q end 
    end
    local gt = function(p,q) return lt(q,p) end
-   local eq = not (lt or gt)
+   local eq = function(p,q) return not (lt(p,q) or lt(q,p)) end
 
    function bt.empty(node)
       return not node or (node == bt and not (node.left or node.right))
@@ -93,6 +93,17 @@ local function btree(lt)
       return node.parent
    end
 
+   function bt.prev(node)
+      if node.left then 
+         return bt.max(node.left)
+      end
+
+      while node.parent and node == node.parent.left do
+         node = node.parent
+      end
+      return node.parent
+   end
+
    function bt.inorder(node, f)
       local iter = bt.min(node)
       repeat
@@ -113,11 +124,21 @@ local function btree(lt)
 end
 
 function test(n)
+   function y_order(s, x)
+      local a,b = s[1],s[2]
+      print("ord", a, b)
+      local t = (x - b[1]) / (a[1] - b[1])
+      return a[2]*t + b[2]*(1 - t)
+   end
+
    math.randomseed(os.time())
-   t = btree(function(p,q) return p[1] < q[1] end) 
+   t = btree(function(p,q) 
+      print(p,q)
+      return y_order(p, L) < y_order(q, L)
+   end)
    for i = 1,n do 
-      local v = math.random()
-      t:insert({v}) 
+      local v = { v2(math.random(), math.random()), v2(math.random(), math.random()) }
+      t:insert(v) 
    end
 
    i = 0
