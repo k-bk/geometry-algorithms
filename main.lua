@@ -1,5 +1,6 @@
 rand = require "rand"
 btree = require "btree"
+stack = require "stack"
 
 UI = require "lib.UI"
 graph = require "lib.graph"
@@ -44,6 +45,7 @@ function love.load()
    stoper = 0
    step = 0.3
    love.graphics.setBackgroundColor{ 1,1,1 }
+   love.graphics.setLineJoin("bevel")
    love.draw = draw_menu
 end
 
@@ -69,17 +71,16 @@ function love.mousepressed(x, y, button)
 end
 
 function love.mousereleased(x, y, button)
-    if button == 1 then
-        UI.mousereleased { x = x, y = y }
-    end
+   if button == 1 then
+      UI.mousereleased { x = x, y = y }
+   end
 end
 
 function love.mousemoved(x, y)
-    UI.mousemoved { x = x, y = y }
-end
+   mouse_position = v2(x,y)
+   if lab and lab.mousemoved then lab.mousemoved(x, y) end
 
-function love.textinput(text)
-   UI.textinput(text)
+   UI.mousemoved { x = x, y = y }
 end
 
 function love.resize()
