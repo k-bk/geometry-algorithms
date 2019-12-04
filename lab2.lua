@@ -18,7 +18,7 @@ function Graham(set)
    local pivot = points[1]
    local pivot_i = 1
    for i,p in ipairs(points) do
-      if p[2] - pivot[2] < -eps or (p[2] - pivot[2] < eps and p[1] - pivot[1] < eps) then
+      if p.y - pivot.y < -eps or (p.y - pivot.y < eps and p.x - pivot.x < eps) then
          pivot = p
          pivot_i = i
       end
@@ -29,8 +29,8 @@ function Graham(set)
       if o > 0 then 
          return true
       elseif o == 0 then
-         if a[1] - b[1] < -eps then return true end
-         if a[2] - b[2] < -eps then return true end
+         if a.x - b.x < -eps then return true end
+         if a.y - b.y < -eps then return true end
       end
       return false
    end)
@@ -69,7 +69,7 @@ function Jarvis(set)
    local pivot = points[1]
    local pivot_i = 1
    for i,p in ipairs(points) do
-      if p[2] - pivot[2] < -eps or (p[2] - pivot[2] < eps and p[1] - pivot[1] < eps) then
+      if p.y - pivot.y < -eps or (p.y - pivot.y < eps and p.x - pivot.x < eps) then
          pivot = p
          pivot_i = i
       end

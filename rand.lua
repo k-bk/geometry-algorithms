@@ -36,10 +36,10 @@ end
 function rand.on_rectangle(a, b, count, buffer)
    local cc = count / 4
    local buffer = buffer or {}
-   rand.on_segment(a, v2(a[1],b[2]), cc, buffer)
-   rand.on_segment(v2(a[1],b[2]), b, cc, buffer)
-   rand.on_segment(b, v2(b[1],a[2]), cc, buffer)
-   rand.on_segment(v2(b[1],a[2]), a, cc, buffer)
+   rand.on_segment(a, v2(a.x, b.y), cc, buffer)
+   rand.on_segment(v2(a.x, b.y), b, cc, buffer)
+   rand.on_segment(b, v2(b.x, a.y), cc, buffer)
+   rand.on_segment(v2(b.x, a.y), a, cc, buffer)
    return buffer
 end
 
@@ -50,7 +50,7 @@ function rand.segments(xrange, yrange, count, buffer)
    while i < count do
       local p1 = v2(rand.double(xrange[1], xrange[2]), rand.double(yrange[1], yrange[2]))
       local p2 = v2(rand.double(xrange[1], xrange[2]), rand.double(yrange[1], yrange[2]))
-      local segment_valid = math.abs(p1[1] - p2[1]) > eps 
+      local segment_valid = math.abs(p1.x - p2.x) > eps 
       for _,seg in ipairs(buffer) do 
          for _,p in ipairs(seg) do
             if (p1 - p):len() < eps or (p2 - p):len() < eps then
@@ -61,7 +61,7 @@ function rand.segments(xrange, yrange, count, buffer)
       end
       if segment_valid then
          i = i + 1
-         if p1[1] < p2[1] then
+         if p1.x < p2.x then
             table.insert(buffer, { p1, p2 })
          else
             table.insert(buffer, { p2, p1 })

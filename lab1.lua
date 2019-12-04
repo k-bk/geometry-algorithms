@@ -4,21 +4,21 @@ function lab.my_det(a,b,c, algo)
    m = { det = function () end }
    if algo == 1 or algo == 3 then
       return 
-         a[1]*b[2] + a[2]*c[1] + b[1]*c[2]
-       - a[1]*c[2] - a[2]*b[1] - b[2]*c[1]
+         a.x*b.y + a.y*c.x + b.x*c.y
+       - a.x*c.y - a.y*b.x - b.y*c.x
    elseif algo == 2 or algo == 4 then
       return 
-         ((a[1]-c[1]) * (b[2]-c[2]))
-       - ((a[2]-c[2]) * (b[1]-c[1]))
+         ((a.x-c.x) * (b.y-c.y))
+       - ((a.y-c.y) * (b.x-c.x))
    elseif algo == 3 then
       return m.det({ 
-         { a[1], a[2], 1 },
-         { b[1], b[2], 1 },
-         { c[1], c[2], 1 }})
+         { a.x, a.y, 1 },
+         { b.x, b.y, 1 },
+         { c.x, c.y, 1 }})
    elseif algo == 4 then
       return m.det({
-         { a[1]-c[1], a[2]-c[2] },
-         { b[1]-c[1], b[2]-c[2] }})
+         { a.x-c.x, a.y-c.y },
+         { b.x-c.x, b.y-c.y }})
    end
 end
 
@@ -83,7 +83,7 @@ function lab.load()
    print(" 3. determinant 3x3, library function")
    print(" 4. determinant 2x2, library function")
 
-   lab.load()
+   return lab.load()
 end
 
 function lab.update()

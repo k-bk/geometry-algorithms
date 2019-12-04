@@ -32,15 +32,15 @@ function intersection_point(p, q)
    local det_cd = det2(c, d)
    local det_ab_cd = det2(ab, cd)
 
-   local px = (det_ab * cd[1] - det_cd * ab[1]) / det_ab_cd
-   local py = (det_ab * cd[2] - det_cd * ab[2]) / det_ab_cd
+   local px = (det_ab * cd.x - det_cd * ab.x) / det_ab_cd
+   local py = (det_ab * cd.y - det_cd * ab.y) / det_ab_cd
    return v2(px, py)
 end
 
 function y_order(s, x)
    local a,b = s[1],s[2]
-   local t = (x - b[1]) / (a[1] - b[1])
-   return a[2]*t + b[2]*(1 - t)
+   local t = (x - b.x) / (a.x - b.x)
+   return a.y*t + b.y*(1 - t)
 end
 
 function neighbours(btree, value)
@@ -72,7 +72,7 @@ function sweep(segments)
       end)
    end
 
-   local Q = btree(function(p,q) return p.key[1] < q.key[1] end)
+   local Q = btree(function(p,q) return p.key.x < q.key.x end)
 
    for _,s in ipairs(segments) do
       Q:insert { key = s[1], value = s, type = "left" }
@@ -83,7 +83,7 @@ function sweep(segments)
 
    function process_cross(a,b)
       local cross_point = intersection_point(a,b)
-      if cross_point[1] > L then
+      if cross_point.x > L then
          table.insert(cross, cross_point)
          Q:insert { key = cross_point, value = { a,b }, type = "crossing" }
          print(("crossing: < %s, %s >  < %s, %s > in point %s"):format(ts(a[1]), ts(a[2]), ts(b[1]), ts(b[2]), ts(cross_point)))
@@ -92,7 +92,7 @@ function sweep(segments)
 
    while not Q:empty() do
       e = Q:pop()
-      L = e.key[1]
+      L = e.key.x
       sweep_line = { v2(L,range[1]), v2(L,range[2]), color = graph.c.red, style = "line" }
 
       if e.type == "left" then
