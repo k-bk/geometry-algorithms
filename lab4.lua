@@ -152,7 +152,7 @@ function lab.draw()
          diagonals = triangulate_monotonic(shape, left, right) 
       end ),
    }
-   love.graphics.setColor(0,0,0)
+   love.graphics.setColor(.7,.7,.7)
    love.graphics.line(ui_width + 20, 0, ui_width + 20, 2000)
 
    draw_polygon(shape)
@@ -183,7 +183,7 @@ function draw_polygon(polygon)
    end
 
    if state == "drawing" then 
-      love.graphics.setColor(.8,.8,.8)
+      love.graphics.setColor(.6,.6,.6)
    else
       love.graphics.setColor(1,0,0) 
    end
