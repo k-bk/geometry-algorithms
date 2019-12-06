@@ -40,6 +40,39 @@ function orient(a,b,c)
    end
 end
 
+function array_min(t, lt)
+   if not lt then lt = function(a,b) return a < b end end
+   if #t < 1 then return nil end
+   local min_i = 1
+   for i = 2,#t do
+      if lt(t[i], t[min_i]) then
+         min_i = i
+      end
+   end
+   return min_i, t[min_i]
+end
+
+function gcd(a, b)
+   if b == 0 then return a end
+   return gcd(b, a % b)
+end
+
+function array_rotate_left(t, d)
+   local tmp,j,k
+   for i = 1, gcd(#t, d) do
+      tmp = t[i]
+      j = i
+      while true do
+         k = j + d
+         if k > #t then k = k - #t end
+         if k == i then break end
+         t[j] = t[k]
+         j = k
+      end
+      t[j] = tmp
+   end
+end
+
 function love.load()
    autorun = false
    stoper = 0

@@ -8,24 +8,24 @@ local function autoplot(x)
    autorun = true
    coroutine.yield(x) 
 end
-local function as_lines(x)
-   for _,s in ipairs(x) do
-      s.style = "line"
-      s.color = { 0.5, 0.5, 0.5 }
-   end
-end
 
 function y_monotonic(shape)
    assert(#shape >= 3)
 
-   side = (shape[1].y < shape[2].y) and "left" or "right"
-   swaps = 0
-   res = { left = {}, right = {} }
-   for i = 2,#shape do
-      if side == "left" and shape[i-1].y > shape[i].y then
+   local swaps = 0
+   local res = { left = {}, right = {} }
+
+   local top = array_min(shape, function(p,q) return p.y < q.y end)
+   array_rotate_left(shape, top - 1)
+
+   local side = (shape[#shape].y < shape[1].y) and "left" or "right"
+   table.insert(res[side], shape[#shape])
+
+   for i = 1, #shape - 1 do
+      if side == "left" and shape[i].y > shape[i+1].y then
          swaps = swaps + 1
          side = "right"
-      elseif side == "right" and shape[i-1].y < shape[i].y then
+      elseif side == "right" and shape[i].y < shape[i+1].y then
          swaps = swaps + 1
          side = "left"
       end
@@ -49,7 +49,7 @@ function inside(shape, segment)
    return false
 end
 
-function triangulate_monotonic(shape, left, right)
+function triangulate_monotonic(shape, left, right, top)
 
    table.sort(shape, function(p,q) 
       if p.y == q.y then 
@@ -118,7 +118,7 @@ function lab.update(input)
       if snapped then
          -- end drawing
          state = "main"
-         result, left, right = y_monotonic(shape)
+         result, left, right, top = y_monotonic(shape)
          monotonic = result and "TAK" or "NIE"
       else
          table.insert(shape, mouse_position)
@@ -148,7 +148,7 @@ function lab.draw()
       UI.label { "" },
       UI.button( "Reset", function() shape = {} end ),
       UI.button( "Triangulacja", function() 
-         state = "triangulate" 
+         state = "main" 
          diagonals = triangulate_monotonic(shape, left, right) 
       end ),
    }
@@ -162,7 +162,7 @@ end
 function draw_red_point(p)
    local ps = love.graphics.getPointSize()
    love.graphics.setPointSize(10)
-   love.graphics.points({{ p.x, p.y, .8,0,0,1 }})
+   love.graphics.points({{ p.x, p.y, 1,0,0 }})
    love.graphics.setPointSize(ps)
 end
 
