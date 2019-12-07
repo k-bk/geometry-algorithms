@@ -43,27 +43,25 @@ end
 
 function inside(shape, segment)
    for i = 2,#shape do
-      if intersecting({ shape[i-1], shape[i] }, segment) then return true end
+      if intersecting({ shape[i-1], shape[i] }, segment) then return false end
    end
-   if intersecting({ shape[1], shape[#shape] }, segment) then return true end
-   return false
+   if intersecting({ shape[1], shape[#shape] }, segment) then return false end
+   return true
 end
 
-function triangulate_monotonic(shape, left, right, top)
+function triangulate_monotonic(shape, left, right)
 
-   table.sort(shape, function(p,q) 
-      if p.y == q.y then 
-         return p.x < q.x 
-      else 
-         return p.y < q.y 
-      end 
-   end)
    local diagonals = {}
    local S = stack()
    local point
 
    S:push(shape[1])
    S:push(shape[2])
+
+   while #left > 0 or #right > 0 do
+      if #left == 0 then current = right[1] end
+
+   end
 
    for i = 3,#shape-1 do
       if ( left[shape[i]] and right[S:top()] )
@@ -118,7 +116,7 @@ function lab.update(input)
       if snapped then
          -- end drawing
          state = "main"
-         result, left, right, top = y_monotonic(shape)
+         result, left, right = y_monotonic(shape)
          monotonic = result and "TAK" or "NIE"
       else
          table.insert(shape, mouse_position)
@@ -155,7 +153,7 @@ function lab.draw()
    love.graphics.setColor(.7,.7,.7)
    love.graphics.line(ui_width + 20, 0, ui_width + 20, 2000)
 
-   draw_polygon(shape)
+   draw_polygon(shape, {1,0,0})
    if state == "drawing" then draw_red_point(mouse_position) end
 end
 
@@ -166,7 +164,7 @@ function draw_red_point(p)
    love.graphics.setPointSize(ps)
 end
 
-function draw_polygon(polygon)
+function draw_polygon(polygon, color)
    local r,g,b,a = love.graphics.getColor()
    local ps = love.graphics.getPointSize()
    local lw = love.graphics.getLineWidth()
@@ -185,7 +183,7 @@ function draw_polygon(polygon)
    if state == "drawing" then 
       love.graphics.setColor(.6,.6,.6)
    else
-      love.graphics.setColor(1,0,0) 
+      love.graphics.setColor(color or {1,0,0}) 
    end
    love.graphics.setLineWidth(2)
    if #shape > 4 then love.graphics.polygon("line", shape) end
