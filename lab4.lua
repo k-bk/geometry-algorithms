@@ -34,27 +34,17 @@ function y_monotone(shape)
    local top = array_min(shape, function(p,q) return p.y < q.y end)
    array_rotate_left(shape, top - 1)
 
-   local side = (shape[#shape].y < shape[1].y) and "left" or "right"
-   res[side][shape[#shape]] = true
-
-   for i = 1, #shape - 1 do
-      if side == "left" and shape[i].y > shape[i+1].y then
+   local n = #shape
+   local side = "left"
+   for i = 1,n do
+      res[side][shape[i]] = true
+      if side == "left" and shape[i].y > shape[i%n + 1].y then
          swaps = swaps + 1
          side = "right"
-      elseif side == "right" and shape[i].y < shape[i+1].y then
+      elseif side == "right" and shape[i].y < shape[i%n + 1].y then
          swaps = swaps + 1
          side = "left"
       end
-      res[side][shape[i]] = true
-   end
-
-   print("left")
-   for l,_ in pairs(res.left) do
-      print(point_label[l])
-   end
-   print("right")
-   for r,_ in pairs(res.right) do
-      print(point_label[r])
    end
 
    return swaps <= 2, res.left, res.right
@@ -65,8 +55,8 @@ function triangulate_monotone(shape, left, right)
    -- sort the shape, shape[1] is the point on top
    local sorted = {}
    local i,j = 1,#shape
-   while i ~= j do
-      if shape[i].y <= shape[j].y then
+   while i <= j do
+      if shape[i].y < shape[j].y then
          table.insert(sorted, shape[i])
          i = i + 1
       else
@@ -84,7 +74,7 @@ function triangulate_monotone(shape, left, right)
    S:push(shape[2])
    coroutine.yield(S, diagonals, "Włóż dwa pierwsze wierzchołki na stos")
 
-   for i = 3,#shape do
+   for i = 3,#shape-1 do
       if ( left[shape[i]] and right[S:top()] )
       or ( right[shape[i]] and left[S:top()] ) 
       then -- if on different sides
@@ -103,9 +93,11 @@ function triangulate_monotone(shape, left, right)
          local first = shape[i] 
          local middle = S:pop()
          local last = S:pop() 
+         print("check same side")
          while last and middle do
-            if ( left[last] and orient(first, middle, last) == -1 )
-            or ( right[last] and orient(first, middle, last) == 1 )
+            print(point_label[first], point_label[middle], point_label[last], orient(first, middle, last))
+            if ( left[first] and orient(first, middle, last) == 1 )
+            or ( right[first] and orient(first, middle, last) == -1 )
             then
                coroutine.yield(S, diagonals, 
                   "Sprawdź czy krawędź ("..point_label[first]..point_label[last]..") jest wewnątrz: Tak")
@@ -113,6 +105,8 @@ function triangulate_monotone(shape, left, right)
             else
                coroutine.yield(S, diagonals, 
                   "Sprawdź czy krawędź ("..point_label[first]..point_label[last]..") jest wewnątrz: Nie")
+               S:push(last)
+               break
             end
             middle = last
             last = S:pop()
@@ -120,6 +114,15 @@ function triangulate_monotone(shape, left, right)
          S:push(middle)
          S:push(first)
       end
+   end
+
+   S:pop()
+   while S:top() do
+      local point = S:pop()
+      if point ~= shape[1] and point ~= shape[#shape-1] then
+         table.insert(diagonals, { point, shape[#shape] }) 
+      end
+      coroutine.yield(S, diagonals, "Ostatni wierzchołek")
    end
 
    while true do
@@ -156,7 +159,6 @@ function lab.update(input)
       else
          table.insert(shape, mouse_position)
          local base = string.byte("A") - 1
-         print("New point", string.char(base + #shape))
          point_label[mouse_position] = string.char(base + #shape)
       end
    end
@@ -213,8 +215,9 @@ function lab.draw()
    love.graphics.setColor(.7,.7,.7)
    love.graphics.line(ui_width + 20, 0, ui_width + 20, 2000)
 
-   draw_polygon(shape, {.5,.5,.5})
+   draw_polygon(shape, {.8,.8,.8})
    if diagonals then
+      love.graphics.setColor( { .5,0,0 } )
       for _,d in ipairs(diagonals) do
          love.graphics.line(d[1].x, d[1].y, d[2].x, d[2].y)
       end
