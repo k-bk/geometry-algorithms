@@ -51,7 +51,7 @@ end
 
 function triangulate_monotonic(shape, left, right)
 
-   -- sort the shape
+   -- sort the shape, shape[1] is the point on top
    local sorted = {}
    local i,j = 1,#shape
    while i ~= j do
@@ -63,9 +63,6 @@ function triangulate_monotonic(shape, left, right)
          j = j - 1
       end
    end
-
-   print("shape")
-   for _,v in ipairs(sorted) do print (v) end
 
    shape = sorted
    local diagonals = {}
@@ -89,7 +86,8 @@ function triangulate_monotonic(shape, left, right)
          S:push(shape[i])
       else -- if on the same side
          S:pop()
-         while S:top() and inside(shape, { S:top(), shape[i] }) do
+         point = S:pop()
+         while S:top() and point and inside(shape, { S:top(), shape[i] }) do
             table.insert(diagonals, { point, shape[i] }) 
             point = S:pop()
          end
@@ -103,11 +101,14 @@ function triangulate_monotonic(shape, left, right)
       table.insert(diagonals, { S:pop(), shape[#shape] })
    end
 
+   print("diagonals")
+   for _,v in ipairs(diagonals) do print (v) end
+
    return diagonals
 end
 
 function lab.load()
-   monotonic = "Narysuj wielokąt"
+   monotonic_label = "Narysuj wielokąt"
    state = "main"
    shape = {}
    left, right = {}, {}
@@ -118,7 +119,7 @@ function lab.update(input)
    if input == "click" and mouse_position.x > ui_width + 10 then
       if state == "main" and #shape == 0 then
          state = "drawing"
-         monotonic = "Narysuj wielokąt"
+         monotonic_label = "Narysuj wielokąt"
       end
       if state == "drawing" then
          snapped = false
@@ -128,8 +129,8 @@ function lab.update(input)
       if snapped then
          -- end drawing
          state = "main"
-         result, left, right = y_monotonic(shape)
-         monotonic = result and "TAK" or "NIE"
+         monotonic, left, right = y_monotonic(shape)
+         monotonic_label = monotonic and "TAK" or "NIE"
       else
          table.insert(shape, mouse_position)
       end
@@ -154,18 +155,28 @@ end
 function lab.draw()
    ui_width, _ = UI.draw { x = 10, y = 10,
       UI.label { "y-monotoniczny:  " },
-      UI.label { monotonic },
-      UI.label { "" },
-      UI.button( "Reset", function() shape = {} end ),
-      UI.button( "Triangulacja", function() 
+      UI.label { monotonic_label },
+      UI.label {""},
+      UI.button( "Reset", function() 
+         monotonic = false
+         monotonic_label = "Narysuj wielokąt"
+         diagonals = {}
+         shape = {} 
+      end ),
+      monotonic and UI.button( "Triangulacja", function() 
          state = "main" 
          diagonals = triangulate_monotonic(shape, left, right) 
-      end ),
+      end ) or UI.label{""},
    }
    love.graphics.setColor(.7,.7,.7)
    love.graphics.line(ui_width + 20, 0, ui_width + 20, 2000)
 
    draw_polygon(shape, {1,0,0})
+   if diagonals then
+      for _,d in ipairs(diagonals) do
+         love.graphics.line(d[1].x, d[1].y, d[2].x, d[2].y)
+      end
+   end
    if state == "drawing" then draw_red_point(mouse_position) end
 end
 
