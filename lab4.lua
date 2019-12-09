@@ -1,12 +1,28 @@
 local lab = {}
 
-local function plot(x) 
-   autorun = false
-   coroutine.yield(x) 
-end
-local function autoplot(x) 
-   autorun = true
-   coroutine.yield(x) 
+function categorize_points(shape)
+   local cat = {}
+   local n = #shape
+   for i = 1, #shape do
+      local first, middle, last = shape[(i-2)%n+1], shape[i], shape[i%n+1]
+
+      if first.y > middle.y and last.y > middle.y then
+         if orient(first, middle, last) == 1 then
+            cat[middle] = { { 102/255,153/255,1 }, "dzielący" }
+         else
+            cat[middle] = { { 0,204/255,0 }, "początkowy" }
+         end
+      elseif first.y < middle.y and last.y < middle.y then
+         if orient(first, middle, last) == 1 then
+            cat[middle] = { { 51/255,51/255,153/255 }, "łączący" }
+         else
+            cat[middle] = { { 1,0,0 }, "końcowy" }
+         end
+      else
+         cat[middle] = { { 102/255,51/255,0 }, "prawidłowy" }
+      end
+   end
+   return cat
 end
 
 function y_monotone(shape)
@@ -136,6 +152,7 @@ function lab.update(input)
          state = "main"
          monotone, left, right = y_monotone(shape)
          monotone_label = monotone and "TAK" or "NIE"
+         categories = categorize_points(shape)
       else
          table.insert(shape, mouse_position)
          local base = string.byte("A") - 1
@@ -153,8 +170,13 @@ function snap_mouse(point)
 end
 
 function lab.mousemoved()
+   snapped = false
+   if state == "main" then
+      for _,point in ipairs(shape) do
+         snap_mouse(point)
+      end
+   end
    if state == "drawing" then
-      snapped = false
       snap_mouse(shape[1])
       snap_mouse(shape[#shape])
    end
@@ -191,11 +213,26 @@ function lab.draw()
    love.graphics.setColor(.7,.7,.7)
    love.graphics.line(ui_width + 20, 0, ui_width + 20, 2000)
 
-   draw_polygon(shape, {1,0,0})
+   draw_polygon(shape, {.5,.5,.5})
    if diagonals then
       for _,d in ipairs(diagonals) do
          love.graphics.line(d[1].x, d[1].y, d[2].x, d[2].y)
       end
+   end
+   if state == "main" then
+      for _,point in ipairs(shape) do
+         if categories[point] then
+            local color = categories[point][1]
+            love.graphics.setColor(color)
+            love.graphics.circle("fill", point.x, point.y, 5)
+            love.graphics.setColor(0,0,0)
+            love.graphics.circle("line", point.x, point.y, 5)
+         end
+      end
+   end
+   if state == "main" and snapped and categories[mouse_position] then
+      love.graphics.printf(categories[mouse_position], font_body, 
+         mouse_position.x - 100, mouse_position.y - 40, 200, "center")
    end
    if state == "drawing" then draw_red_point(mouse_position) end
 end
@@ -237,7 +274,7 @@ function draw_polygon(polygon, color)
    for _,point in ipairs(polygon) do
       local letter = point_label[point]
       if letter then
-         love.graphics.print(letter, point.x - 10, point.y - 17)
+         love.graphics.print(letter, point.x - 12, point.y - 22)
       end
    end
 
