@@ -13,7 +13,7 @@ function y_monotonic(shape)
    assert(#shape >= 3)
 
    local swaps = 0
-   local res = { left = {}, right = {} }
+   local res = { left = stack(), right = stack() }
 
    local top = array_min(shape, function(p,q) return p.y < q.y end)
    array_rotate_left(shape, top - 1)
@@ -29,7 +29,7 @@ function y_monotonic(shape)
          swaps = swaps + 1
          side = "left"
       end
-      table.insert(res[side], shape[i])
+      res[side][shape[i]] = true
    end
    return swaps <= 2, res.left, res.right
 end
@@ -51,17 +51,29 @@ end
 
 function triangulate_monotonic(shape, left, right)
 
+   -- sort the shape
+   local sorted = {}
+   local i,j = 1,#shape
+   while i ~= j do
+      if shape[i].y <= shape[j].y then
+         table.insert(sorted, shape[i])
+         i = i + 1
+      else
+         table.insert(sorted, shape[j])
+         j = j - 1
+      end
+   end
+
+   print("shape")
+   for _,v in ipairs(sorted) do print (v) end
+
+   shape = sorted
    local diagonals = {}
    local S = stack()
    local point
 
    S:push(shape[1])
    S:push(shape[2])
-
-   while #left > 0 or #right > 0 do
-      if #left == 0 then current = right[1] end
-
-   end
 
    for i = 3,#shape-1 do
       if ( left[shape[i]] and right[S:top()] )
