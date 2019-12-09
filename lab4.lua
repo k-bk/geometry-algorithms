@@ -9,7 +9,7 @@ local function autoplot(x)
    coroutine.yield(x) 
 end
 
-function y_monotonic(shape)
+function y_monotone(shape)
    assert(#shape >= 3)
 
    local swaps = 0
@@ -19,7 +19,7 @@ function y_monotonic(shape)
    array_rotate_left(shape, top - 1)
 
    local side = (shape[#shape].y < shape[1].y) and "left" or "right"
-   table.insert(res[side], shape[#shape])
+   res[side][shape[#shape]] = true
 
    for i = 1, #shape - 1 do
       if side == "left" and shape[i].y > shape[i+1].y then
@@ -31,25 +31,20 @@ function y_monotonic(shape)
       end
       res[side][shape[i]] = true
    end
+
+   print("left")
+   for l,_ in pairs(res.left) do
+      print(point_label[l])
+   end
+   print("right")
+   for r,_ in pairs(res.right) do
+      print(point_label[r])
+   end
+
    return swaps <= 2, res.left, res.right
 end
 
-function intersecting(p, q)
-   if p == q then return false end
-   local a,b,c,d = p[1],p[2],q[1],q[2]
-   return orient(a, b, c) ~= orient(a, b, d) 
-      and orient(c, d, a) ~= orient(c, d, b) 
-end
-
-function inside(shape, segment)
-   for i = 2,#shape do
-      if intersecting({ shape[i-1], shape[i] }, segment) then return false end
-   end
-   if intersecting({ shape[1], shape[#shape] }, segment) then return false end
-   return true
-end
-
-function triangulate_monotonic(shape, left, right)
+function triangulate_monotone(shape, left, right)
 
    -- sort the shape, shape[1] is the point on top
    local sorted = {}
@@ -71,44 +66,54 @@ function triangulate_monotonic(shape, left, right)
 
    S:push(shape[1])
    S:push(shape[2])
+   coroutine.yield(S, diagonals, "Włóż dwa pierwsze wierzchołki na stos")
 
-   for i = 3,#shape-1 do
+   for i = 3,#shape do
       if ( left[shape[i]] and right[S:top()] )
-         or ( right[shape[i]] and left[S:top()] ) 
+      or ( right[shape[i]] and left[S:top()] ) 
       then -- if on different sides
-         while S:top() do
+         coroutine.yield(S, diagonals, 
+            "Kolejny wierzchołek ("..point_label[shape[i]]..") na innym łańcuchu")
+         while #S >= 2 do
             point = S:pop()
-            if S:top() then -- if not last point on stack
-               table.insert(diagonals, { point, shape[i] }) 
-            end
+            table.insert(diagonals, { point, shape[i] }) 
          end
+         S:pop()
          S:push(point)
          S:push(shape[i])
       else -- if on the same side
-         S:pop()
-         point = S:pop()
-         while S:top() and point and inside(shape, { S:top(), shape[i] }) do
-            table.insert(diagonals, { point, shape[i] }) 
-            point = S:pop()
+         coroutine.yield(S, diagonals, 
+            "Kolejny wierzchołek ("..point_label[shape[i]]..") na tym samym łańcuchu")
+         local first = shape[i] 
+         local middle = S:pop()
+         local last = S:pop() 
+         while last and middle do
+            if ( left[last] and orient(first, middle, last) == -1 )
+            or ( right[last] and orient(first, middle, last) == 1 )
+            then
+               coroutine.yield(S, diagonals, 
+                  "Sprawdź czy krawędź ("..point_label[first]..point_label[last]..") jest wewnątrz: Tak")
+               table.insert(diagonals, { first, last }) 
+            else
+               coroutine.yield(S, diagonals, 
+                  "Sprawdź czy krawędź ("..point_label[first]..point_label[last]..") jest wewnątrz: Nie")
+            end
+            middle = last
+            last = S:pop()
          end
-         S:push(point)
-         S:push(shape[i])
+         S:push(middle)
+         S:push(first)
       end
    end
 
-   S:pop()
-   while #S > 1 do
-      table.insert(diagonals, { S:pop(), shape[#shape] })
+   while true do
+      coroutine.yield(S, diagonals, "Koniec triangulacji")
    end
-
-   print("diagonals")
-   for _,v in ipairs(diagonals) do print (v) end
-
-   return diagonals
 end
 
 function lab.load()
-   monotonic_label = "Narysuj wielokąt"
+   point_label = {}
+   monotone_label = "Narysuj wielokąt"
    state = "main"
    shape = {}
    left, right = {}, {}
@@ -119,7 +124,7 @@ function lab.update(input)
    if input == "click" and mouse_position.x > ui_width + 10 then
       if state == "main" and #shape == 0 then
          state = "drawing"
-         monotonic_label = "Narysuj wielokąt"
+         monotone_label = "Narysuj wielokąt"
       end
       if state == "drawing" then
          snapped = false
@@ -129,10 +134,13 @@ function lab.update(input)
       if snapped then
          -- end drawing
          state = "main"
-         monotonic, left, right = y_monotonic(shape)
-         monotonic_label = monotonic and "TAK" or "NIE"
+         monotone, left, right = y_monotone(shape)
+         monotone_label = monotone and "TAK" or "NIE"
       else
          table.insert(shape, mouse_position)
+         local base = string.byte("A") - 1
+         print("New point", string.char(base + #shape))
+         point_label[mouse_position] = string.char(base + #shape)
       end
    end
 end
@@ -155,18 +163,30 @@ end
 function lab.draw()
    ui_width, _ = UI.draw { x = 10, y = 10,
       UI.label { "y-monotoniczny:  " },
-      UI.label { monotonic_label },
+      UI.label { monotone_label },
       UI.label {""},
       UI.button( "Reset", function() 
-         monotonic = false
-         monotonic_label = "Narysuj wielokąt"
+         algorithm = nil
+         monotone = false
+         monotone_label = "Narysuj wielokąt"
          diagonals = {}
          shape = {} 
       end ),
-      monotonic and UI.button( "Triangulacja", function() 
-         state = "main" 
-         diagonals = triangulate_monotonic(shape, left, right) 
+      monotone and UI.button( algorithm and "Dalej" or "Triangulacja", function() 
+         if not algorithm then
+            state = "main" 
+            algorithm = coroutine.wrap(function() return triangulate_monotone(shape, left, right) end)
+         end
+         S, diagonals, algorithm_label = algorithm()
+         stack_label = "_"
+         for _,v in ipairs(S) do
+            stack_label = stack_label.." -> "..point_label[v]
+         end
       end ) or UI.label{""},
+   }
+   UI.draw { x = ui_width + 30, y = 10,
+      UI.label { "Triangulacja: "..(algorithm_label or "wprowadź wielokąt") },
+      UI.label { "Stos: "..(stack_label or "pusty") },
    }
    love.graphics.setColor(.7,.7,.7)
    love.graphics.line(ui_width + 20, 0, ui_width + 20, 2000)
@@ -213,6 +233,13 @@ function draw_polygon(polygon, color)
    love.graphics.setColor(0,0,0)
    love.graphics.setPointSize(6)
    love.graphics.points(shape)
+
+   for _,point in ipairs(polygon) do
+      local letter = point_label[point]
+      if letter then
+         love.graphics.print(letter, point.x - 10, point.y - 17)
+      end
+   end
 
    love.graphics.setLineWidth(lw)
    love.graphics.setPointSize(ps)
