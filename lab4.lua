@@ -74,12 +74,12 @@ function triangulate_monotone(shape, left, right)
    S:push(shape[2])
    coroutine.yield(S, diagonals, "Włóż dwa pierwsze wierzchołki na stos")
 
-   for i = 3,#shape-1 do
+   for i = 3,#shape do
       if ( left[shape[i]] and right[S:top()] )
       or ( right[shape[i]] and left[S:top()] ) 
       then -- if on different sides
          coroutine.yield(S, diagonals, 
-            "Kolejny wierzchołek ("..point_label[shape[i]]..") na innym łańcuchu")
+            "Wierzchołek ("..point_label[shape[i]]..") na innym łańcuchu")
          while #S >= 2 do
             point = S:pop()
             table.insert(diagonals, { point, shape[i] }) 
@@ -89,22 +89,22 @@ function triangulate_monotone(shape, left, right)
          S:push(shape[i])
       else -- if on the same side
          coroutine.yield(S, diagonals, 
-            "Kolejny wierzchołek ("..point_label[shape[i]]..") na tym samym łańcuchu")
+            "Wierzchołek ("..point_label[shape[i]]..") na tym samym łańcuchu")
          local first = shape[i] 
          local middle = S:pop()
          local last = S:pop() 
          print("check same side")
          while last and middle do
             print(point_label[first], point_label[middle], point_label[last], orient(first, middle, last))
-            if ( left[first] and orient(first, middle, last) == 1 )
-            or ( right[first] and orient(first, middle, last) == -1 )
+            if ( left[middle] and orient(first, middle, last) == 1 )
+            or ( right[middle] and orient(first, middle, last) == -1 )
             then
                coroutine.yield(S, diagonals, 
-                  "Sprawdź czy krawędź ("..point_label[first]..point_label[last]..") jest wewnątrz: Tak")
+                  "Czy krawędź ("..point_label[first]..point_label[last]..") jest wewnątrz: Tak")
                table.insert(diagonals, { first, last }) 
             else
                coroutine.yield(S, diagonals, 
-                  "Sprawdź czy krawędź ("..point_label[first]..point_label[last]..") jest wewnątrz: Nie")
+                  "Czy krawędź ("..point_label[first]..point_label[last]..") jest wewnątrz: Nie")
                S:push(last)
                break
             end
@@ -116,14 +116,14 @@ function triangulate_monotone(shape, left, right)
       end
    end
 
+   --[[
    S:pop()
    while S:top() do
       local point = S:pop()
-      if point ~= shape[1] and point ~= shape[#shape-1] then
-         table.insert(diagonals, { point, shape[#shape] }) 
-      end
+      table.insert(diagonals, { point, shape[#shape] }) 
       coroutine.yield(S, diagonals, "Ostatni wierzchołek")
    end
+   --]]
 
    while true do
       coroutine.yield(S, diagonals, "Koniec triangulacji")
