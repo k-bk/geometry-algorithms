@@ -58,7 +58,7 @@ function Graham(set)
 
    local hull = { color = graph.c.red, unpack(s) }
    plot { s, points, hull, title = "Algorytm Grahama, koniec" }
-   return 
+   return Graham(set)
 end
 
 function Jarvis(set)
@@ -108,6 +108,7 @@ function Jarvis(set)
 
    local hull = { color = graph.c.red, unpack(s) }
    plot { s, points, hull, title = "Algorytm Jarvisa, koniec" }
+   return Jarvis(set)
 end
 
 function point_sets()
@@ -196,29 +197,27 @@ function lab.load()
 end
 
 function lab.update(input)
-   if input == "click" then
-      if animation and content then
-         content = get_content()
-      end
-   elseif input == "stoper" then
-      if animation and autorun and content then
-         content = get_content()
+   if animation and content and get_content then
+      if input == "click" or (input == "stoper" and autorun) then
+         content = get_content() or content
       end
    end
 
    local w, h = love.graphics.getDimensions()
    love.graphics.setCanvas(graph_canvas)
-   graph.graph(content, { width = w - graph_canvas_offset - 10, height = h })
+   if content then
+      graph.graph(content, { width = w - graph_canvas_offset - 10, height = h })
+   end
    love.graphics.setCanvas()
 end
 
 function lab.draw()
 
    graph_canvas_offset, _ = UI.draw { x = 10, y = 10,
-      UI.button( "Punkty", change_points ),
+      UI.button{ "Punkty", on_click = change_points },
       UI.label {""},
-      UI.button( "Graham", run_graham ),
-      UI.button( "Jarvis", run_jarvis ),
+      UI.button{ "Graham", on_click = run_graham },
+      UI.button{ "Jarvis", on_click = run_jarvis },
    }
 
    love.graphics.setColor(1,1,1)

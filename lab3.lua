@@ -140,6 +140,7 @@ function sweep(segments)
       plot(to_plot)
    end
 
+   return sweep(segments)
 end
 
 function lab.load()
@@ -180,9 +181,9 @@ end
 
 function lab.draw()
    graph_canvas_offset, _ = UI.draw { x = 10, y = 10,
-      UI.button( "Losuj", function() lab.load() end ),
-      UI.button( "Start", function() animation = true end ),
-      UI.button( "Stop", function() animation = false end ),
+      UI.button { "Losuj", function() lab.load() end },
+      UI.button { "Start", function() animation = true end },
+      UI.button { "Stop", function() animation = false end },
    }
 
    love.graphics.setColor(1,1,1)

@@ -22,8 +22,7 @@ function lab.my_det(a,b,c, algo)
    end
 end
 
-function lab.load()
-
+function lab.generate()
     -- 1.a)
    local points_a = { color = graph.c.blue }
    rand.in_range(v2(-1000,1000), v2(-1000,1000), 1e5, points_a)
@@ -83,13 +82,22 @@ function lab.load()
    print(" 3. determinant 3x3, library function")
    print(" 4. determinant 2x2, library function")
 
-   return lab.load()
+   return lab.generate()
 end
 
-function lab.update()
+function lab.load()
+   generate = coroutine.wrap(lab.generate)
+   points = generate()
+end
+
+function lab.update(input)
+   if input == "click" then
+      points = generate()
+   end
 end
 
 function lab.draw()
+   graph.graph(points)
 end
 
 return lab
