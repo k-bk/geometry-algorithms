@@ -14,9 +14,10 @@ url="https://api.github.com/repos/$user/$repo/commits/$branch?path=$file"
 raw_url="https://raw.githubusercontent.com/$user/$repo/$branch/$file"
 
 package=$PKG_DIR/$(basename $file)
+remote_timestamp=$( curl -s -I $url | grep "Last-Modified:" | sed 's/Last-Modified://' | date -f - +%s )
+
 if [[ -f $package ]]; then
     # fetch modification timestamps from local file and file on github.com
-    remote_timestamp=$( curl -s -I $url | grep "Last-Modified:" | sed 's/Last-Modified://' | date -f - +%s )
     local_timestamp=$(stat -c%Y $package)
     if [[ $local_timestamp -ge $remote_timestamp ]]; then
         echo "✔ $package"
@@ -26,3 +27,4 @@ fi
 
 echo "✘ $package"
 curl --progress-bar $raw_url -o $package
+touch -d @$remote_timestamp $package
