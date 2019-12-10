@@ -189,14 +189,14 @@ function lab.draw()
       UI.label { "y-monotoniczny:  " },
       UI.label { monotone_label },
       UI.label {""},
-      UI.button( "Reset", function() 
+      UI.button { "Reset", on_click = function() 
          algorithm = nil
          monotone = false
          monotone_label = "Narysuj wielokąt"
          diagonals = {}
          shape = {} 
-      end ),
-      monotone and UI.button( algorithm and "Dalej" or "Triangulacja", function() 
+      end },
+      monotone and UI.button { algorithm and "Dalej" or "Triangulacja", on_click = function() 
          if not algorithm then
             state = "main" 
             algorithm = coroutine.wrap(function() return triangulate_monotone(shape, left, right) end)
@@ -206,7 +206,7 @@ function lab.draw()
          for _,v in ipairs(S) do
             stack_label = stack_label.." -> "..point_label[v]
          end
-      end ) or UI.label{""},
+      end } or UI.label{""},
    }
    UI.draw { x = ui_width + 30, y = 10,
       UI.label { "Triangulacja: "..(algorithm_label or "wprowadź wielokąt") },

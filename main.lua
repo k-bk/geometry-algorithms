@@ -135,35 +135,35 @@ end
 function draw_menu()
    UI.draw { x = 10, y = 10,
       {
-         UI.button( "Lab 1", function () 
+         UI.button { "Lab 1", on_click = function () 
             lab = lab1
             lab.load()
             love.draw = lab.draw 
-         end),
+         end },
          UI.label { "Losowe punkty" },
       },
       {
-         UI.button( "Lab 2", function () 
+         UI.button { "Lab 2", on_click = function () 
             lab = lab2
             lab.load()
             love.draw = lab.draw 
-         end),
+         end },
          UI.label { "Algorytmy Grahama i Jarvisa" },
       },
       {
-         UI.button( "Lab 3", function () 
+         UI.button { "Lab 3", on_click = function () 
             lab = lab3
             lab.load()
             love.draw = lab.draw 
-         end),
+         end },
          UI.label { "Przecinające się odcinki, zamiatanie" }
       },
       {
-         UI.button( "Lab 4", function () 
+         UI.button { "Lab 4", on_click = function () 
             lab = lab4
             lab.load()
             love.draw = lab.draw 
-         end),
+         end },
          UI.label { "Wielokąty y-monotoniczne" }
       },
    }
